@@ -1,0 +1,297 @@
+---
+title: "Darwin Core mapping"
+subtitle: "For: alien-mollusca-checklist"
+author:
+- Lien Reyserhove
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+#  pdf_document:
+#    df_print: kable
+#    number_sections: yes
+#    toc: yes
+#    toc_depth: 3
+---
+
+# Setup 
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Load libraries:
+
+```{r}
+library(tidyverse)      # To do data science
+library(tidylog)        # To provide feedback on dplyr functions
+library(magrittr)       # To use %<>% pipes
+library(here)           # To find files
+library(janitor)        # To clean input data
+library(readxl)         # To read Excel files
+library(digest)         # To generate hashes
+library(rgbif)          # To use GBIF services
+library(googlesheets)   # To import and read Google spreadsheets 
+```
+
+# Read source data
+
+The original spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1hSXd6SZQUvI8uGbE_5-vmN8ZZz739D46HRt2aTFcb-s/edit#gid=0). We need to retrieve this spreadsheet and select the specific worksheet first:
+
+Retrieve the spreadsheet:
+
+```{r connect_google_spreadsheets}
+retrieve_spreadsheet <- gs_title("alien mollusca checklist")
+```
+
+Select the data in the worksheet `checklist`:
+
+```{r read_source_data}
+input_data <- retrieve_spreadsheet %>% gs_read("checklist") # Also trims values
+```
+
+We want to add a copy of the source data to the repository:
+
+```{r}
+write_csv(input_data, here("data", "raw", "alien_mollusca_checklist_dump.csv"), na = "")
+```
+
+Preview data: 
+
+```{r}
+input_data %>% head()
+```
+
+# Process source data
+
+## Tidy data
+
+Clean data somewhat:
+
+```{r}
+input_data %<>%
+  remove_empty("rows") %<>% 
+  clean_names()
+```
+
+## Scientific names
+
+Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in the checklist:
+
+```{r}
+parsed_names <- input_data %>%
+  distinct(scientific_name) %>%
+  pull() %>% # Create vector from dataframe
+  parsenames() # An rgbif function
+```
+
+All scientific names are of `type = SCIENTIFIC` and need no further processing.
+
+## Taxon ranks
+
+The nameparser function also provides information about the rank of the taxon (in `rankmarker`). Here we join this information with our checklist. Cleaning these ranks will done in the Taxon Core mapping:
+
+```{r}
+input_data %<>% left_join(
+  select(parsed_names, scientificname, rankmarker),
+  by = c("scientific_name" = "scientificname"))
+```
+
+## Taxon IDs
+
+To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`.
+Although information in `r_id` could be used as a `taxonID` here, we will not consider them as such as they are unstable (e.g. `unknown1`). Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name:
+
+```{r}
+vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
+input_data %<>% mutate(taxon_id = paste(
+  "alien-mollusca-checklist", 
+  "taxon",
+  vdigest(scientific_name, algo = "md5"),
+  sep = ":"
+))
+```
+
+## Preview data
+
+Show the number of taxa and distributions per rank:
+
+```{r}
+input_data %>%
+  group_by(rankmarker) %>%
+  summarize(
+    `# taxa` = n_distinct(taxon_id),
+    `# distributions` = n()
+  ) %>%
+  adorn_totals("row")
+```
+
+Preview data:
+
+```{r}
+input_data %>% head()
+```
+
+# Taxon core
+
+## Pre-processing
+
+Create a dataframe with unique taxa:
+
+```{r}
+taxon <- input_data %>% distinct(taxon_id, .keep_all = TRUE)
+```
+
+## Term mapping
+
+Map the data to [Darwin Core Taxon](http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml).
+
+Start with record-level terms which contain metadata about the dataset (which is generally the same for all records).
+
+### language
+
+```{r}
+taxon %<>% mutate(dwc_language = "en")
+```
+
+### license
+
+```{r}
+taxon %<>% mutate(dwc_license = "http://creativecommons.org/publicdomain/zero/1.0/")
+```
+
+### rightsHolder
+
+```{r}
+taxon %<>% mutate(dwc_rightsHolder = "Royal Belgian Institute of Natural Sciences")
+```
+
+### bibliographicCitation
+
+### datasetID
+
+```{r}
+taxon %<>% mutate(dwc_datasetID = "")
+```
+
+### institutionCode
+
+```{r}
+taxon %<>% mutate(dwc_institutionCode = "RBINS")
+```
+
+### datasetName
+
+```{r}
+taxon %<>% mutate(dwc_datasetName = "Registry of introduced alien molluscs in Belgium")
+```
+
+The following terms contain information about the taxon:
+
+### taxonID
+
+```{r}
+taxon %<>% mutate(dwc_taxonID = taxon_id)
+```
+
+### scientificName
+
+```{r}
+taxon %<>% mutate(dwc_scientificName = scientific_name)
+```
+
+### kingdom
+
+```{r}
+taxon %<>% mutate(dwc_kingdom = "Animalia")
+```
+
+### phylum
+
+```{r}
+taxon %<>% mutate(dwc_phylum = "Mollusca") 
+```
+
+### class
+
+```{r}
+taxon %<>% mutate(dwc_class = class)
+```
+
+### order
+
+```{r}
+taxon %<>% mutate(dwc_order = order) 
+```
+
+### family
+
+```{r}
+taxon %<>% mutate(dwc_family = family) 
+```
+
+### taxonRank
+
+Inspect values:
+
+```{r}
+taxon %>%
+  group_by(rankmarker) %>%
+  count()
+```
+
+Map values by recoding to the [GBIF rank vocabulary](http://rs.gbif.org/vocabulary/gbif/rank_2015-04-24.xml):
+
+```{r}
+taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
+  "sp."       = "species",
+  .default    = "",
+  .missing    = ""
+))
+```
+
+Inspect mapped values: 
+
+```{r}
+taxon %>%
+  group_by(rankmarker, dwc_taxonRank) %>%
+  count()
+```
+
+### nomenclaturalCode
+
+```{r}
+taxon %<>% mutate(dwc_nomenclaturalCode = "ICZN")
+```
+
+### taxonRemarks
+
+## Post-processing
+
+Only keep the Darwin Core columns:
+
+```{r}
+taxon %<>% select(starts_with("dwc_"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(taxon) <- str_remove(colnames(taxon), "dwc_")
+```
+
+Preview data:
+
+```{r}
+taxon %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
+```
