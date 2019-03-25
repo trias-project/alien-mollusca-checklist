@@ -40,6 +40,14 @@ library(googlesheets)   # To import and read Google spreadsheets
 
 # Read source data
 
+Set column types:
+
+```{r}
+col_types = cols(
+   .default = col_character(),
+    other_col = col_double())
+```
+
 The original spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1hSXd6SZQUvI8uGbE_5-vmN8ZZz739D46HRt2aTFcb-s/edit#gid=0). We need to retrieve this spreadsheet and select the specific worksheet first:
 
 Retrieve the spreadsheet:
@@ -51,7 +59,7 @@ retrieve_spreadsheet <- gs_title("alien mollusca checklist")
 Select the data in the worksheet `checklist`:
 
 ```{r read_source_data}
-input_data <- retrieve_spreadsheet %>% gs_read("checklist") # Also trims values
+input_data <- retrieve_spreadsheet %>% gs_read("checklist", col_types = col_types)
 ```
 
 We want to add a copy of the source data to the repository:
