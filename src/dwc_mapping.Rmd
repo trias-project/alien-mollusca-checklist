@@ -303,3 +303,98 @@ Save to CSV:
 ```{r}
 write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
 ```
+
+# Distribution extension
+
+## Pre-processing
+
+Create a dataframe with all data:
+
+```{r}
+distribution <- input_data
+```
+
+## Term mapping
+
+Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
+
+### taxonID
+
+```{r}
+distribution %<>% mutate(dwc_taxonID = taxon_id)
+```
+
+### locationID
+
+```{r}
+distribution %<>% mutate(dwc_locationID = "ISO_3166-2:BE") 
+```
+
+### locality
+
+```{r}
+distribution %<>% mutate(dwc_locality = "Belgium") 
+```
+
+### countryCode
+
+```{r}
+distribution %<>% mutate(dwc_countryCode = "BE") 
+```
+
+### occurrenceStatus 
+
+```{r}
+distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
+```
+
+### establishmentMeans
+
+```{r}
+distribution %<>% mutate(dwc_establishmentMeans = "introduced") 
+```
+
+### eventDate
+
+The dataset contains two fields with date information: `first_observation`, which is always populated, and `last_observation`, which is often empty. From these columns, we create `eventDate` (ISO 8601 format: `yyyy` or `yyyy`/`yyyy`).
+
+```{r}
+distribution %<>% mutate(eventDate = case_when(
+  is.na(last_observation) ~ first_observation,
+  TRUE ~ paste(first_observation, last_observation, sep = "/")))
+```
+
+### source
+
+Information for source can be found in `source_distribution`.
+
+```{r}
+distribution %<>% mutate(dwc_source = source_distribution) 
+```
+
+## Post-processing
+
+Only keep the Darwin Core columns:
+
+```{r}
+distribution %<>% select(starts_with("dwc_"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(distribution) <- str_remove(colnames(distribution), "dwc_")
+```
+
+Preview data:
+
+```{r}
+distribution %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
+```
+
