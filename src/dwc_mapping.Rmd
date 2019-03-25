@@ -398,3 +398,48 @@ Save to CSV:
 write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
 ```
 
+### Description extension
+
+In the description extension we want to include several important characteristics (hereafter refered to as descriptors) about the species:
+
+- Native range
+- Pathway of introduction
+- Degree of establishment
+
+A single taxon can have multiple descriptions of the same type (e.g. multiple native ranges), expressed as multiple rows in the description extension.
+
+For each descriptor, we create a separate dataframe to process the specific information. We always specify _which descriptor_ we map (`type` column) and its _specific content_ (`description` column). After the mapping of these Darwin Core terms `type` and `value`, we merge the dataframes to generate one single description extension. We then continue the mapping process by adding the other Darwin Core terms (which content is independent of the type of descriptor, such as `language`).
+
+## Native range
+
+Create separate dataframe:
+
+```{r start_native_range}
+native_range <- input_data
+```
+
+Inspect data:
+
+```{r}
+native_range %>% 
+  group_by(native_range) %>% 
+  summarize(records = n())
+```
+
+Separate by `,`:
+
+```{r}
+native_range %<>% separate(native_range, 
+                          into = paste("native_range",c(1:9),sep="_"),
+                          sep = ",")
+```
+
+
+
+Create `description` from `origin`:
+
+```{r}
+native_range %<>% mutate(description = origin)
+```
+
+
