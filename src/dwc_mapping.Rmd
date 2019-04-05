@@ -492,12 +492,80 @@ native_range %<>% separate(native_range,
                           sep = ",")
 ```
 
-
-
-Create `description` from `origin`:
+Gather data:
 
 ```{r}
-native_range %<>% mutate(description = origin)
+native_range %<>% gather(key = "native_range",
+                         value = "value",
+                         paste("native_range",c(1:9),sep="_"),
+                         na.rm = TRUE)
+```
+
+Inspect data:
+
+```{r}
+native_range %>% 
+  group_by(value) %>% 
+  summarize(records = n())
+```
+
+Trim whitespace:
+
+```{r}
+native_range %<>% mutate(value = str_trim(value))
+```
+
+Create `description` from `value`:
+
+```{r}
+native_range %<>% mutate(description = value)
+```
+
+Create `type`:
+
+```{r}
+native_range %<>% mutate(type = "native range") 
+```
+
+Remove `native_range`:
+
+```{r}
+native_range %<>% select(-native_range) 
+```
+
+## Pathways
+
+Create separate dataframe:
+
+```{r start_pathways}
+pathways <- input_description
+```
+
+Inspect data:
+
+```{r}
+pathways %>% 
+  group_by(introduction_pathway) %>% 
+  summarize(records = n())
+```
+
+To be continued after cleaning by Thierry
+
+## Degree of establishment
+
+Create separate dataframe:
+
+```{r start_pathways}
+pathways <- input_description
+```
+
+Inspect data:
+
+```{r}
+pathways %>% 
+  group_by(degree_of_establishment) %>% 
+  summarize(records = n()) %>% 
+  kable()
 ```
 
 
