@@ -110,36 +110,16 @@ input_taxon %<>% left_join(
 ## Taxon IDs
 
 To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`.
-Although information in `r_id` could be used as a `taxonID` here, we will not consider them as such as they are unstable (e.g. `unknown1`). Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name:
+Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name. We save this as a separate dataframe as we want to append this information to each generated file here:
 
 ```{r}
 vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
-input_data %<>% mutate(taxon_id = paste(
-  "alien-mollusca-checklist", 
-  "taxon",
-  vdigest(scientific_name, algo = "md5"),
-  sep = ":"
-))
-```
-
-## Preview data
-
-Show the number of taxa and distributions per rank:
-
-```{r}
-input_data %>%
-  group_by(rankmarker) %>%
-  summarize(
-    `# taxa` = n_distinct(taxon_id),
-    `# distributions` = n()
-  ) %>%
-  adorn_totals("row")
-```
-
-Preview data:
-
-```{r}
-input_data %>% head()
+taxon_id <- input_taxon %>% 
+  mutate(taxon_id = paste("alien-mollusca-checklist", 
+                          "taxon",
+                          vdigest(scientific_name, algo = "md5"), 
+                          sep = ":")) %>% 
+  select(scientific_name, taxon_id)
 ```
 
 # Taxon core
@@ -200,9 +180,18 @@ The following terms contain information about the taxon:
 
 ### taxonID
 
+Merge with `taxon_id`:
+
 ```{r}
 input_taxon %<>% left_join(taxon_id, by = "scientific_name")
 ```
+
+Rename to `dwc_taxonID`:
+
+```{r}
+input_taxon %<>% rename("dwc_taxonID" = "taxon_id") 
+```
+ 
 
 ### scientificName
 
@@ -380,6 +369,8 @@ Save to CSV:
 ```{r}
 write_csv(input_vernacular_names, here("data", "processed", "vernacularnames.csv"), na = "")
 ```
+
+# Distribution extension
 
 ## Term mapping
 
