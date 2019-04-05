@@ -308,14 +308,77 @@ Save to CSV:
 write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
 ```
 
-# Distribution extension
+# Vernacular names extension
 
-## Pre-processing
+## Term mapping
 
-Create a dataframe with all data:
+Map the data to [Vernacular Names](http://rs.gbif.org/extension/gbif/1.0/vernacularname.xml).
+
+### taxonID
+
+Merge with `taxon_id`:
 
 ```{r}
-distribution <- input_data
+input_vernacular_names %<>% left_join(taxon_id, by = "scientific_name")
+```
+
+Rename to `dwc_taxonID`:
+
+```{r}
+input_vernacular_names %<>% rename("dwc_taxonID" = "taxon_id") 
+```
+ 
+### vernacularName
+
+```{r}
+input_vernacular_names %<>% mutate(dwc_vernacularName = vernacular_name)
+```
+
+### language
+
+```{r}
+input_vernacular_names %>%
+  group_by(language) %>% 
+  summarize(records = n())
+```
+
+
+This column currently contains the original column name, which we will recode to the ISO 639-1 language code:
+
+```{r}
+input_vernacular_names %<>% mutate(dwc_language = recode(language,
+  "dutch" = "nl",
+  "english" = "en",
+  "french" = "fr",
+  "german" = "de"
+))
+```
+
+## Post-processing
+
+Remove the original columns: 
+
+```{r}
+input_vernacular_names %<>% select(
+  -starts_with("dwc"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(input_vernacular_names) <- str_remove(colnames(input_vernacular_names), "dwc_")
+```
+
+Preview data:
+
+```{r}
+input_vernacular_names %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(input_vernacular_names, here("data", "processed", "vernacularnames.csv"), na = "")
 ```
 
 ## Term mapping
