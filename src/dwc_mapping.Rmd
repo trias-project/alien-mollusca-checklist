@@ -195,7 +195,7 @@ taxon %<>% mutate(dwc_institutionCode = "RBINS")
 ### datasetName
 
 ```{r}
-taxon %<>% mutate(dwc_datasetName = "Registry of introduced alien molluscs in Belgium")
+taxon %<>% mutate(dwc_datasetName = "Registry of introduced terrestrial molluscs in Belgium")
 ```
 
 The following terms contain information about the taxon:
