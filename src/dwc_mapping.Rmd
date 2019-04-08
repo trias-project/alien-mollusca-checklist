@@ -56,17 +56,12 @@ Retrieve the spreadsheet:
 retrieve_spreadsheet <- gs_title("alien mollusca checklist")
 ```
 
-Select the data in the worksheet `checklist`:
+Select the data in the worksheets:
 
 ```{r read_source_data}
-input_taxon <- retrieve_spreadsheet %>% gs_read("taxon", col_types = col_types)
+input_taxa <- retrieve_spreadsheet %>% gs_read("taxa", col_types = col_types)
 input_vernacular_names <- retrieve_spreadsheet %>% gs_read("vernacular_names", col_types = col_types)
 input_synonyms <- retrieve_spreadsheet %>% gs_read("synonyms", col_types = col_types)
-```
-
-```{r}
-input_distribution <- retrieve_spreadsheet %>% gs_read("distribution", col_types = col_types)
-input_description <- retrieve_spreadsheet %>% gs_read("description", col_types = col_types)
 input_references <- retrieve_spreadsheet %>% gs_read("references", col_types = col_types)
 ```
 
@@ -74,11 +69,9 @@ input_references <- retrieve_spreadsheet %>% gs_read("references", col_types = c
 We want to add a copy of the source data to the repository:
 
 ```{r}
-write_csv(input_taxon, here("data", "raw", "input_taxon.csv"), na = "")
+write_csv(input_taxa, here("data", "raw", "input_taxa.csv"), na = "")
 write_csv(input_vernacular_names, here("data", "raw", "input_vernacular_names.csv"), na = "")
 write_csv(input_synonyms, here("data", "raw", "input_synonyms.csv"), na = "")
-write_csv(input_distribution, here("data", "raw", "input_distribution.csv"), na = "")
-write_csv(input_description, here("data", "raw", "input_description.csv"), na = "")
 write_csv(input_references, here("data", "raw", "input_references.csv"), na = "")
 ```
 
@@ -89,7 +82,7 @@ write_csv(input_references, here("data", "raw", "input_references.csv"), na = ""
 Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in the checklist:
 
 ```{r}
-parsed_names <- input_taxon %>%
+parsed_names <- input_taxa %>%
   distinct(scientific_name) %>%
   pull() %>% # Create vector from dataframe
   parsenames() # An rgbif function
@@ -102,7 +95,7 @@ All scientific names are of `type = SCIENTIFIC` and need no further processing.
 The nameparser function also provides information about the rank of the taxon (in `rankmarker`). Here we join this information with our checklist. Cleaning these ranks will done in the Taxon Core mapping:
 
 ```{r}
-input_taxon %<>% left_join(
+input_taxa %<>% left_join(
   select(parsed_names, scientificname, rankmarker),
   by = c("scientific_name" = "scientificname"))
 ```
@@ -114,7 +107,7 @@ Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` i
 
 ```{r}
 vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
-taxon_id <- input_taxon %>% 
+taxon_id <- input_taxa %>% 
   mutate(taxon_id = paste("alien-mollusca-checklist", 
                           "taxon",
                           vdigest(scientific_name, algo = "md5"), 
@@ -129,7 +122,7 @@ taxon_id <- input_taxon %>%
 Create a dataframe with unique taxa:
 
 ```{r}
-input_taxon %<>% distinct(scientific_name, .keep_all = TRUE)
+taxon <- input_taxa %>% distinct(scientific_name, .keep_all = TRUE)
 ```
 
 ## Term mapping
@@ -141,19 +134,19 @@ Start with record-level terms which contain metadata about the dataset (which is
 ### language
 
 ```{r}
-input_taxon %<>% mutate(dwc_language = "en")
+taxon %<>% mutate(dwc_language = "en")
 ```
 
 ### license
 
 ```{r}
-input_taxon %<>% mutate(dwc_license = "http://creativecommons.org/publicdomain/zero/1.0/")
+taxon %<>% mutate(dwc_license = "http://creativecommons.org/publicdomain/zero/1.0/")
 ```
 
 ### rightsHolder
 
 ```{r}
-input_taxon %<>% mutate(dwc_rightsHolder = "Royal Belgian Institute of Natural Sciences")
+taxon %<>% mutate(dwc_rightsHolder = "Royal Belgian Institute of Natural Sciences")
 ```
 
 ### bibliographicCitation
@@ -161,19 +154,19 @@ input_taxon %<>% mutate(dwc_rightsHolder = "Royal Belgian Institute of Natural S
 ### datasetID
 
 ```{r}
-input_taxon %<>% mutate(dwc_datasetID = "")
+taxon %<>% mutate(dwc_datasetID = "")
 ```
 
 ### institutionCode
 
 ```{r}
-input_taxon %<>% mutate(dwc_institutionCode = "RBINS")
+taxon %<>% mutate(dwc_institutionCode = "RBINS")
 ```
 
 ### datasetName
 
 ```{r}
-input_taxon %<>% mutate(dwc_datasetName = "Registry of introduced terrestrial molluscs in Belgium")
+taxon %<>% mutate(dwc_datasetName = "Registry of introduced terrestrial molluscs in Belgium")
 ```
 
 The following terms contain information about the taxon:
@@ -183,56 +176,55 @@ The following terms contain information about the taxon:
 Merge with `taxon_id`:
 
 ```{r}
-input_taxon %<>% left_join(taxon_id, by = "scientific_name")
+taxon %<>% left_join(taxon_id, by = "scientific_name")
 ```
 
 Rename to `dwc_taxonID`:
 
 ```{r}
-input_taxon %<>% rename("dwc_taxonID" = "taxon_id") 
+taxon %<>% rename("dwc_taxonID" = "taxon_id") 
 ```
  
-
 ### scientificName
 
 ```{r}
-input_taxon %<>% mutate(dwc_scientificName = scientific_name)
+taxon %<>% mutate(dwc_scientificName = scientific_name)
 ```
 
 ### kingdom
 
 ```{r}
-input_taxon %<>% mutate(dwc_kingdom = "Animalia")
+taxon %<>% mutate(dwc_kingdom = "Animalia")
 ```
 
 ### phylum
 
 ```{r}
-input_taxon %<>% mutate(dwc_phylum = "Mollusca") 
+taxon %<>% mutate(dwc_phylum = "Mollusca") 
 ```
 
 ### class
 
 ```{r}
-input_taxon %<>% mutate(dwc_class = class)
+taxon %<>% mutate(dwc_class = class)
 ```
 
 ### order
 
 ```{r}
-input_taxon %<>% mutate(dwc_order = order) 
+taxon %<>% mutate(dwc_order = order) 
 ```
 
 ### family
 
 ```{r}
-input_taxon %<>% mutate(dwc_family = family) 
+taxon %<>% mutate(dwc_family = family) 
 ```
 
 ### genus
 
 ```{r}
-input_taxon %<>% mutate(dwc_genus = genus)
+taxon %<>% mutate(dwc_genus = genus)
 ```
 
 ### taxonRank
@@ -240,7 +232,7 @@ input_taxon %<>% mutate(dwc_genus = genus)
 Inspect values:
 
 ```{r}
-input_taxon %>%
+taxon %>%
   group_by(rankmarker) %>%
   count()
 ```
@@ -248,7 +240,7 @@ input_taxon %>%
 Map values by recoding to the [GBIF rank vocabulary](http://rs.gbif.org/vocabulary/gbif/rank_2015-04-24.xml):
 
 ```{r}
-input_taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
+taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
   "sp."       = "species",
   .default    = "",
   .missing    = ""
@@ -258,7 +250,7 @@ input_taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
 Inspect mapped values: 
 
 ```{r}
-input_taxon %>%
+taxon %>%
   group_by(rankmarker, dwc_taxonRank) %>%
   count()
 ```
@@ -266,7 +258,7 @@ input_taxon %>%
 ### nomenclaturalCode
 
 ```{r}
-input_taxon %<>% mutate(dwc_nomenclaturalCode = "ICZN")
+taxon %<>% mutate(dwc_nomenclaturalCode = "ICZN")
 ```
 
 ### taxonRemarks
@@ -372,44 +364,55 @@ write_csv(input_vernacular_names, here("data", "processed", "vernacularnames.csv
 
 # Distribution extension
 
+```{r}
+distribution <- input_taxa
+```
+
 ## Term mapping
 
 Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
 
 ### taxonID
 
+Merge with `taxon_id`:
+
 ```{r}
-input_distribution %<>% mutate(dwc_taxonID = taxon_id)
+distribution %<>% left_join(taxon_id, by = "scientific_name")
 ```
 
+Rename to `dwc_taxonID`:
+
+```{r}
+distribution %<>% rename("dwc_taxonID" = "taxon_id") 
+```
 ### locationID
 
 ```{r}
-input_distribution %<>% mutate(dwc_locationID = "ISO_3166-2:BE") 
+distribution %<>% mutate(dwc_locationID = "ISO_3166-2:BE") 
 ```
 
 ### locality
 
 ```{r}
-input_distribution %<>% mutate(dwc_locality = "Belgium") 
+distribution %<>% mutate(dwc_locality = "Belgium") 
 ```
 
 ### countryCode
 
 ```{r}
-input_distribution %<>% mutate(dwc_countryCode = "BE") 
+distribution %<>% mutate(dwc_countryCode = "BE") 
 ```
 
 ### occurrenceStatus 
 
 ```{r}
-input_distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
+distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
 ```
 
 ### establishmentMeans
 
 ```{r}
-input_distribution %<>% mutate(dwc_establishmentMeans = "introduced") 
+distribution %<>% mutate(dwc_establishmentMeans = "introduced") 
 ```
 
 ### eventDate
@@ -417,7 +420,7 @@ input_distribution %<>% mutate(dwc_establishmentMeans = "introduced")
 The dataset contains two fields with date information: `first_observation`, which is always populated, and `last_observation`, which is often empty. From these columns, we create `eventDate` (ISO 8601 format: `yyyy` or `yyyy`/`yyyy`).
 
 ```{r}
-input_distribution %<>% mutate(eventDate = case_when(
+distribution %<>% mutate(eventDate = case_when(
   is.na(last_observation) ~ first_observation,
   TRUE ~ paste(first_observation, last_observation, sep = "/")))
 ```
@@ -435,25 +438,25 @@ input_distribution %<>% mutate(dwc_source = source_distribution)
 Only keep the Darwin Core columns:
 
 ```{r}
-input_distribution %<>% select(starts_with("dwc_"))
+input_references %<>% select(starts_with("dwc_"))
 ```
 
 Drop the `dwc_` prefix:
 
 ```{r}
-colnames(input_distribution) <- str_remove(colnames(input_distribution), "dwc_")
+colnames(input_references) <- str_remove(colnames(input_references), "dwc_")
 ```
 
 Preview data:
 
 ```{r}
-input_distribution %>% head()
+input_references %>% head()
 ```
 
 Save to CSV:
 
 ```{r}
-write_csv(input_distribution, here("data", "processed", "distribution.csv"), na = "")
+write_csv(input_references, here("data", "processed", "references.csv"), na = "")
 ```
 
 ## Description extension
@@ -473,7 +476,7 @@ For each descriptor, we create a separate dataframe to process the specific info
 Create separate dataframe:
 
 ```{r start_native_range}
-native_range <- input_description
+native_range <- input_taxa
 ```
 
 Inspect data:
@@ -538,7 +541,7 @@ native_range %<>% select(-native_range)
 Create separate dataframe:
 
 ```{r start_pathways}
-pathways <- input_description
+pathways <- input_taxa
 ```
 
 Inspect data:
@@ -556,7 +559,7 @@ To be continued after cleaning by Thierry
 Create separate dataframe:
 
 ```{r start_pathways}
-pathways <- input_description
+pathways <- input_taxa
 ```
 
 Inspect data:
