@@ -1,5 +1,5 @@
 taxonID,locationID,locality,countryCode,occurrenceStatus,establishmentMeans,source
-alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f,ISO_3166-2:BE,Belgium,BE,present,introduced,"Van Goethem 1976, De Wilde et al. 1986"
+alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f,ISO_3166-2:BE,Belgium,BE,present,introduced,
 alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e,ISO_3166-2:BE,Belgium,BE,present,introduced,"Moens 1981, Risch & Backeljau 1989, Van Goethem & Backeljau 2002"
 alien-mollusca-checklist:taxon:a4f4c57a54f834761b99b164aeb118b8,ISO_3166-2:BE,Belgium,BE,present,introduced,"Van Goethem 1972, Meijer 1968, Schmid 1968, Lambert 1971, Lambert 1972, De Zuttere et al. 1972, De Wilde et al. 1983a, De Wilde et al. 1983b"
 alien-mollusca-checklist:taxon:d35bb708ec0c0b005948aff00d416a30,ISO_3166-2:BE,Belgium,BE,present,introduced,"Adam 1943, Adam 1947, Adam 1947b, Dupuis 1924, Marquet 1985, Devriese et al. 2004, De Wilde et al. 1986, Vercautere et al. 2002, Devriese et al. 2004"
