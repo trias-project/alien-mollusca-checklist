@@ -430,7 +430,63 @@ distribution %<>% mutate(eventDate = case_when(
 Information for source can be found in `source_distribution`.
 
 ```{r}
-input_distribution %<>% mutate(dwc_source = source_distribution) 
+distribution %<>% mutate(dwc_source = source_distribution) 
+```
+
+## Post-processing
+
+Only keep the Darwin Core columns:
+
+```{r}
+distribution %<>% select(starts_with("dwc_"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(distribution) <- str_remove(colnames(distribution), "dwc_")
+```
+
+Preview data:
+
+```{r}
+distribution %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
+```
+
+# Literature reference extension
+
+## Pre-processing
+
+### taxonID
+
+Merge with `taxon_id`:
+
+```{r}
+input_references %<>% left_join(taxon_id, by = "scientific_name")
+```
+
+Rename to `dwc_taxonID`:
+
+```{r}
+input_references %<>% rename("dwc_taxonID" = "taxon_id") 
+```
+
+### identifier
+
+```{r}
+input_references %<>% mutate(dwc_identifier = shortref)
+```
+
+### bibliographicCitation
+
+```{r}
+input_references %<>% mutate(dwc_bibliographiccitation = reference) 
 ```
 
 ## Post-processing
