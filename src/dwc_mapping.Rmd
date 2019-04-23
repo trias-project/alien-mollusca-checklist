@@ -77,6 +77,16 @@ write_csv(input_references, here("data", "raw", "input_references.csv"), na = ""
 
 # Pre-processing
 
+## Clean files:
+
+`input_vernacular_names`, `input_synonyms` and `input_references` contain empty rows, we remove those here:
+
+```{r}
+input_vernacular_names %<>% remove_empty("rows") 
+input_synonyms %<>% remove_empty("rows") 
+input_references %<>% remove_empty("rows") 
+```
+
 ## Scientific names
 
 Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in the checklist:
