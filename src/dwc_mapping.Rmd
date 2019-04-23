@@ -433,7 +433,9 @@ Map the data to [Vernacular Names](http://rs.gbif.org/extension/gbif/1.0/vernacu
 Merge with `taxon_id`:
 
 ```{r}
-input_vernacular_names %<>% left_join(taxon_id, by = "scientific_name")
+input_vernacular_names %<>% left_join(
+  select(input_taxa, scientific_name, taxon_id), 
+  by = "scientific_name")
 ```
 
 Rename to `dwc_taxonID`:
@@ -500,19 +502,20 @@ write_csv(input_vernacular_names, here("data", "processed", "vernacularnames.csv
 distribution <- input_taxa
 ```
 
+Preview:
+
+```{r}
+distribution %>% head()
+```
+
+
 ## Term mapping
 
 Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
 
 ### taxonID
 
-Merge with `taxon_id`:
-
-```{r}
-distribution %<>% left_join(taxon_id, by = "scientific_name")
-```
-
-Rename to `dwc_taxonID`:
+Rename `taxon_id` to `dwc_taxonID`:
 
 ```{r}
 distribution %<>% rename("dwc_taxonID" = "taxon_id") 
@@ -536,7 +539,15 @@ distribution %<>% mutate(dwc_locality = "Belgium")
 distribution %<>% mutate(dwc_countryCode = "BE") 
 ```
 
-### occurrenceStatus 
+### occurrenceStatus
+
+`occurrenceStatus` should be `present`, `doubtful` or `absent`:
+
+```{r}
+distribution %>% 
+  group_by(occurrence_status) %>% 
+  summarize(records = n())
+```
 
 ```{r}
 distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
@@ -550,10 +561,10 @@ distribution %<>% mutate(dwc_establishmentMeans = "introduced")
 
 ### eventDate
 
-The dataset contains two fields with date information: `first_observation`, which is always populated, and `last_observation`, which is often empty. From these columns, we create `eventDate` (ISO 8601 format: `yyyy` or `yyyy`/`yyyy`).
+The dataset integrates two fields with date information: `first_observation`, which is _always_ populated, and `last_observation`, which is _often empty_. From these columns, we create `eventDate` (ISO 8601 format: `yyyy` or `yyyy`/`yyyy`).
 
 ```{r}
-distribution %<>% mutate(eventDate = case_when(
+distribution %<>% mutate(dwc_eventDate = case_when(
   is.na(last_observation) ~ first_observation,
   TRUE ~ paste(first_observation, last_observation, sep = "/")))
 ```
