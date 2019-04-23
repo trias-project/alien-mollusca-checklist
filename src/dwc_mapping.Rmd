@@ -130,9 +130,143 @@ taxon_id <- input_taxa %>%
 ## Pre-processing
 
 Create a dataframe with unique taxa:
+Taxonomic information is provided in two different dataframes: 
+- `input_taxa` including all _accepted_ scientific names
+- `input_synonyms` including all scientific names of _synonyms_
+
+For some of the species, the original name is provided, i.e. the scientificName as it originally appeared when the name was first established under the rules of the associated nomenclaturalCode. These original names can be extracted from `input_synyms`: these are the `scientific_name` for which `remarks` = `original name`. 
+
+For each scientific name (accepted or synonym), the taxon Core will thus inlcude the following information
+
+- `taxon_id`
+- `accepted_name_usage_id`: reference to the taxon_id of the _accepted_ scientific name
+- `original_name_usage_id`: reference to the taxon_id of the original scientific name if applicable
+- `scientific_name`
+- `accepted_name_usage`: reference to the _accepted_ scientific name
+- `original_name_usage`: reference to the _original_ scientific name
+- `taxonomic_status`: `accepted` or `synonym`
+- higher classification: `class`, `order`, `family` and `genus` 
+
+
+
+We map these terms in four steps:
+1. Generate `taxon` which contains all abovementioned terms for the accepted scientific names in `input_taxa`.
+  - `taxon_id`, `scientific_name` and the higher classification is already provided
+  - Map `taxonomic_status` (= `accepted`), `accepted_name_usage` (= `scientific_name`) and `accepted_name_usage_id` (= `taxon_id`)
+2. Generate `synonyms` which contains all abovementioned terms for the synonyms in `input_synonyms`. 
+  - `scientific_name` is already provided
+  - Join with `taxon` to extract the higher classification `class`, `order`, `family` and `genus`
+  - Generate `taxon_id` for synonyms
+  - Map `taxonomic_status` (= `synonym`), `accepted_name_usage` (= `synonym_of`) and `accepted_name_usage_id` (= `taxon_id` from `taxon`)
+3. Join  `synonyms` with `taxon` using the dplyr funtion `bind_rows()`
+4. Add information for original names when applicable
+
+### Generate taxon
+
+Generate `taxon` by extracting all taxonomic information from `input_taxa`:
 
 ```{r}
-taxon <- input_taxa %>% distinct(scientific_name, .keep_all = TRUE)
+taxon <- 
+  input_taxa %>% select(taxon_id, scientific_name, class, order, family, genus, taxonomy)
+```
+
+Map `taxonomic_status` which is `accepted`:
+
+```{r}
+taxon %<>% mutate(taxonomic_status = "accepted")
+```
+
+Map `accepted_name_usage` and `accepted_name_usage_id`:
+
+```{r}
+taxon <-
+  taxon %>% 
+    mutate(accepted_name_usage = scientific_name) %>% 
+    mutate(accepted_name_usage_id = taxon_id)
+```
+
+Order terms to enable future join with `synonyms`:
+
+```{r}
+taxon %<>% select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxonomy) 
+```
+
+### Generate synonyms
+
+ - Join with `taxon` to extract the higher classification `class`, `order`, `family` and `genus`
+  - Generate `taxon_id` for synonyms
+  - Map `taxonomic_status` (= `synonym`), `accepted_name_usage` (= `synonym_of`) and `accepted_name_usage_id` (= `taxon_id` from `taxon`)
+  
+Join `synonyms` with `taxon` to extract higher classification:
+
+```{r}
+synonyms <- 
+  input_synonyms %>% 
+    left_join(
+      select(taxon, scientific_name, taxon_id, class, order, family, genus),
+      by = c("synonym_of" = "scientific_name"))
+```
+
+Rename  `taxon_id` from  `taxon` to avoid confusion with the future mapping of `taxon_id` from `synonyms`:
+
+```{r}
+synonyms %<>% rename("taxon_id_accepted" = "taxon_id")
+```
+
+Map `taxon_id` for synonyms:
+
+```{r}
+synonyms %<>% 
+  mutate(taxon_id = paste("alien-mollusca-checklist", 
+                          "taxon",
+                          vdigest(scientific_name, algo = "md5"), 
+                          sep = ":"))
+```
+
+Map `taxonomic_status`:
+
+```{r}
+synonyms %<>% mutate(taxonomic_status = "synonym")
+```
+
+Map `accepted_name_usage` and `accepted_name_usage_id`. This information is already available in `synonym_of` and `taxon_id_accepted` respectively. We thus only need to rename these columns:
+
+```{r}
+synonyms <- 
+  synonyms %>% 
+    rename("accepted_name_usage" = "synonym_of") %>% 
+    rename("accepted_name_usage_id" = "taxon_id_accepted")
+```
+
+Save the link between `scientific_name`, `accepted_name_usage`, `taxon_id` and `remarks` for original names (i.e. `remarks` = `original name`) as a separate dataframe to join later:
+
+```{r}
+original_names <-
+  synonyms %>% 
+    filter(remarks == "original name") %>% 
+    select(scientific_name, accepted_name_usage, taxon_id) %>% 
+    rename("original_name_usage" = "scientific_name") %>% 
+    rename("original_name_usage_id" = "taxon_id")
+```
+
+Rearrange columns and add `taxonomy` (which is empty for `synonyms`) to enable future join with `taxon`:
+
+```{r}
+synonyms <- synonyms %>% 
+  select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status) %>%
+  mutate(taxonomy = "")
+```
+
+Merge both datasets together:
+
+```{r}
+taxon %<>% bind_rows(synonyms)
+```
+
+Add original scientific names to `taxon` using `original_names`:
+
+```{r}
+taxon %<>% left_join(original_names, by = c("accepted_name_usage"))
 ```
 
 ## Term mapping
