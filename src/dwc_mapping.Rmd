@@ -65,7 +65,6 @@ input_synonyms <- retrieve_spreadsheet %>% gs_read("synonyms", col_types = col_t
 input_references <- retrieve_spreadsheet %>% gs_read("references", col_types = col_types)
 ```
 
-
 We want to add a copy of the source data to the repository:
 
 ```{r}
@@ -89,7 +88,7 @@ input_references %<>% remove_empty("rows")
 
 ## Scientific names
 
-Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in the checklist:
+Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in `taxa`:
 
 ```{r}
 parsed_names <- input_taxa %>%
@@ -100,16 +99,6 @@ parsed_names <- input_taxa %>%
 
 All scientific names are of `type = SCIENTIFIC` and need no further processing.
 
-## Taxon ranks
-
-The nameparser function also provides information about the rank of the taxon (in `rankmarker`). Here we join this information with our checklist. Cleaning these ranks will done in the Taxon Core mapping:
-
-```{r}
-input_taxa %<>% left_join(
-  select(parsed_names, scientificname, rankmarker),
-  by = c("scientific_name" = "scientificname"))
-```
-
 ## Taxon IDs
 
 To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`.
@@ -117,19 +106,17 @@ Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` i
 
 ```{r}
 vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
-taxon_id <- input_taxa %>% 
+input_taxa %<>% 
   mutate(taxon_id = paste("alien-mollusca-checklist", 
                           "taxon",
                           vdigest(scientific_name, algo = "md5"), 
-                          sep = ":")) %>% 
-  select(scientific_name, taxon_id)
+                          sep = ":"))
 ```
 
 # Taxon core
 
 ## Pre-processing
 
-Create a dataframe with unique taxa:
 Taxonomic information is provided in two different dataframes: 
 - `input_taxa` including all _accepted_ scientific names
 - `input_synonyms` including all scientific names of _synonyms_
@@ -293,8 +280,6 @@ taxon %<>% mutate(dwc_license = "http://creativecommons.org/publicdomain/zero/1.
 taxon %<>% mutate(dwc_rightsHolder = "Royal Belgian Institute of Natural Sciences")
 ```
 
-### bibliographicCitation
-
 ### datasetID
 
 ```{r}
@@ -317,22 +302,38 @@ The following terms contain information about the taxon:
 
 ### taxonID
 
-Merge with `taxon_id`:
-
 ```{r}
-taxon %<>% left_join(taxon_id, by = "scientific_name")
+taxon %<>% mutate(dwc_taxonID = taxon_id) 
 ```
 
-Rename to `dwc_taxonID`:
+### acceptedNameUsageID
 
 ```{r}
-taxon %<>% rename("dwc_taxonID" = "taxon_id") 
+taxon %<>% mutate(dwc_acceptedNameUsageID = accepted_name_usage_id) 
 ```
- 
+
+### originalNameUsageID
+
+```{r}
+taxon %<>% mutate(dwc_originalNameUsageID = original_name_usage_id) 
+```
+
 ### scientificName
 
 ```{r}
 taxon %<>% mutate(dwc_scientificName = scientific_name)
+```
+
+### acceptedNameUsage
+
+```{r}
+taxon %<>% mutate(dwc_acceptedNameUsage = accepted_name_usage) 
+```
+
+### originalNameUsage
+
+```{r}
+taxon %<>% mutate(dwc_originalNameUsage = original_name_usage) 
 ```
 
 ### kingdom
@@ -373,30 +374,8 @@ taxon %<>% mutate(dwc_genus = genus)
 
 ### taxonRank
 
-Inspect values:
-
 ```{r}
-taxon %>%
-  group_by(rankmarker) %>%
-  count()
-```
-
-Map values by recoding to the [GBIF rank vocabulary](http://rs.gbif.org/vocabulary/gbif/rank_2015-04-24.xml):
-
-```{r}
-taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
-  "sp."       = "species",
-  .default    = "",
-  .missing    = ""
-))
-```
-
-Inspect mapped values: 
-
-```{r}
-taxon %>%
-  group_by(rankmarker, dwc_taxonRank) %>%
-  count()
+taxon %<>% mutate(taxonRank = "species")
 ```
 
 ### nomenclaturalCode
@@ -405,7 +384,17 @@ taxon %>%
 taxon %<>% mutate(dwc_nomenclaturalCode = "ICZN")
 ```
 
+### taxonomicStatus
+
+```{r}
+taxon %<>% mutate(dwc_taxonomicStatus = taxonomic_status) 
+```
+
 ### taxonRemarks
+
+```{r}
+taxon %<>% mutate(taxonRemarks = taxonomy) 
+```
 
 ## Post-processing
 
@@ -466,7 +455,6 @@ input_vernacular_names %>%
   group_by(language) %>% 
   summarize(records = n())
 ```
-
 
 This column currently contains the original column name, which we will recode to the ISO 639-1 language code:
 
@@ -529,6 +517,7 @@ Rename to `dwc_taxonID`:
 ```{r}
 distribution %<>% rename("dwc_taxonID" = "taxon_id") 
 ```
+
 ### locationID
 
 ```{r}
