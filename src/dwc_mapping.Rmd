@@ -605,14 +605,14 @@ write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
 
 # Literature reference extension
 
-## Pre-processing
-
 ### taxonID
 
 Merge with `taxon_id`:
 
 ```{r}
-input_references %<>% left_join(taxon_id, by = "scientific_name")
+input_references %<>% left_join(
+  select(input_taxa, scientific_name, taxon_id),
+  by = "scientific_name")
 ```
 
 Rename to `dwc_taxonID`:
@@ -630,7 +630,7 @@ input_references %<>% mutate(dwc_identifier = shortref)
 ### bibliographicCitation
 
 ```{r}
-input_references %<>% mutate(dwc_bibliographiccitation = reference) 
+input_references %<>% mutate(dwc_bibliographicCitation = reference) 
 ```
 
 ## Post-processing
@@ -687,12 +687,12 @@ native_range %>%
   summarize(records = n())
 ```
 
-Separate by `,`:
+Separate by ` | `:
 
 ```{r}
 native_range %<>% separate(native_range, 
                           into = paste("native_range",c(1:9),sep="_"),
-                          sep = ",")
+                          sep = "(\\s\\|\\s)")
 ```
 
 Gather data:
@@ -710,12 +710,6 @@ Inspect data:
 native_range %>% 
   group_by(value) %>% 
   summarize(records = n())
-```
-
-Trim whitespace:
-
-```{r}
-native_range %<>% mutate(value = str_trim(value))
 ```
 
 Create `description` from `value`:
@@ -767,8 +761,7 @@ Inspect data:
 ```{r}
 pathways %>% 
   group_by(degree_of_establishment) %>% 
-  summarize(records = n()) %>% 
-  kable()
+  summarize(records = n()) 
 ```
 
 
