@@ -692,6 +692,7 @@ Separate by ` | `:
 ```{r}
 native_range %<>% separate(native_range, 
                           into = paste("native_range",c(1:9),sep="_"),
+                          remove = FALSE,
                           sep = "(\\s\\|\\s)")
 ```
 
@@ -712,10 +713,10 @@ native_range %>%
   summarize(records = n())
 ```
 
-Create `description` from `value`:
+Rename `value` to `description`:
 
 ```{r}
-native_range %<>% mutate(description = value)
+native_range %<>% rename("description" = "value")
 ```
 
 Create `type`:
@@ -730,7 +731,7 @@ Remove `native_range`:
 native_range %<>% select(-native_range) 
 ```
 
-## Pathways
+### Pathways
 
 Create separate dataframe:
 
@@ -746,22 +747,191 @@ pathways %>%
   summarize(records = n())
 ```
 
-To be continued after cleaning by Thierry
+Separate by ` | `:
 
-## Degree of establishment
+```{r}
+pathways %<>% separate(introduction_pathway, 
+                          into = paste("introduction_pathway",c(1:4),sep="_"),
+                          sep = "(\\s\\|\\s)",
+                          remove = FALSE)
+```
 
-Create separate dataframe:
+Gather data:
 
-```{r start_pathways}
-pathways <- input_taxa
+```{r}
+pathways %<>% gather(key = "key",
+                     value = "value",
+                     paste("introduction_pathway",c(1:4),sep="_"),
+                     na.rm = TRUE)
 ```
 
 Inspect data:
 
 ```{r}
 pathways %>% 
+  group_by(value) %>% 
+  summarize(records = n())
+```
+
+Map to [controlled vocabulary](https://github.com/trias-project/vocab/blob/master/vocabulary/pathway/pathways.tsv) for pathways, based on the [CBD standard](https://www.cbd.int/doc/meetings/sbstta/sbstta-18/official/sbstta-18-09-add1-en.pdf) and specifically developed for TrIAS:
+
+```{r}
+pathways %<>% mutate(description = recode(value,
+  "Contaminant: Contaminant on plants" = "contaminant_on_plants",
+  "Contaminant: Transportation of habitat material" = "contaminant_habitat_material",
+  "Escape : Pet" = "escape_pet",
+  "Escape: Research and ex-situ breeding" = "escape_research",
+  "Release: Other intentional use" = "release_other",
+  "Stowaway" = "stowaway",
+  "Stowaway: Container" = "stowaway_container",
+  "Stowaway: Hitchhikers on ship" = "stowaway_ship",
+  "Stowaway: People and their luggage" = "stowaway_people_luggage",
+  "Stowaway: Vehicles" = "stowaway_vehicles",
+  "Unaided" = "unaided")) 
+```
+
+Add prefix `cbd_2014_pathway`:
+
+```{r}
+pathways %<>% mutate(description = paste ("cbd_2014_pathway", description, sep = ":"))
+```
+
+Inspect data:
+
+```{r}
+pathways %>% 
+  group_by(value, description) %>% 
+  summarize(records = n())
+```
+
+Map `type`:
+
+```{r}
+pathways %<>% mutate(type = "pathway")
+```
+
+Remove `key` and `value`:
+
+```{r}
+pathways %<>% select(-key, -value) 
+```
+
+### Degree of establishment
+
+Create separate dataframe:
+
+```{r start_pathways}
+degree_of_establishment <- input_taxa
+```
+
+Inspect data:
+
+```{r}
+degree_of_establishment %>% 
   group_by(degree_of_establishment) %>% 
   summarize(records = n()) 
+```
+
+We map the data to the [Blackburn et al. 2011](http://doc.rero.ch/record/24725/files/bach_puf.pdf) proposed framework for biological invatsions. Each stage (A - E) represents a specific degree of establishment. When multiple stages are provided, we default to the most established of Blackburn's categories, see [issue 10](https://github.com/trias-project/alien-mollusca-checklist/issues/10).
+
+```{r}
+degree_of_establishment %<>% mutate(description = recode(degree_of_establishment,
+  "C0 - C3" = "C3",
+  "C1 - C3" = "C3",
+  "C3, D1, D2" = "D2",
+  "D2, E" = "E")) 
+```
+
+Add prefix `blackburn_et_al_2011:` to refer to the framework:
+
+```{r}
+degree_of_establishment %<>% mutate(description = paste ("blackburn_et_al_2011", description, sep = ":"))
+```
+
+Inspect values:
+
+```{r}
+degree_of_establishment %>% 
+  group_by(degree_of_establishment, description) %>% 
+  summarize(records = n()) 
+```
+
+Map `type`:
+
+```{r}
+degree_of_establishment %<>% mutate(type = "degree of establishment") 
+```
+
+Keep `taxon_id`, `description` and `type` only:
+
+```{r}
+degree_of_establishment %<>% select(taxon_id, description, type)
+```
+
+## Union description
+
+Bind `native_range`, `pathways` and `degree_of_establishment` by rows:
+
+```{r}
+description <- bind_rows(native_range, pathways, degree_of_establishment)
+```
+
+## Map terms
+
+### taxonID
+
+```{r}
+description %<>% mutate(dwc_taxonID = taxon_id)
+```
+
+### description
+
+```{r}
+description %<>% mutate(dwc_description = description) 
+```
+
+### type
+
+```{r}
+description %<>% mutate(dwc_type = type) 
+```
+
+### language
+
+```{r}
+description %<>% mutate(dwc_language = "en") 
+```
+
+## Post-processing
+
+Keep columns with `dwc_` prefix only:
+
+```{r}
+description %<>% select(starts_with("dwc_"))
+```
+
+Remove prefix `dwc_`:
+
+```{r}
+colnames(description) <- str_remove(colnames(description), "dwc_")
+```
+
+Sort on `taxonID` to group description information per taxon:
+
+```{r}
+description %<>% arrange(taxonID)
+```
+
+Preview data:
+
+```{r}
+description %>% head(10)
+```
+
+Save to CSV:
+
+```{r}
+write_csv(description, "../data/processed/description.csv", na = "")
 ```
 
 
