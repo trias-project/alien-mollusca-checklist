@@ -340,7 +340,7 @@ taxon %<>% mutate(dwc_genus = genus)
 ### taxonRank
 
 ```{r}
-taxon %<>% mutate(taxonRank = "species")
+taxon %<>% mutate(dwc_taxonRank = "species")
 ```
 
 ### nomenclaturalCode
