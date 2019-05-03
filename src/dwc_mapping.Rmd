@@ -126,14 +126,12 @@ For each scientific name in this checklist (accepted or synonym), the taxon Core
 
 - `taxon_id`: taxon_id of the scientific name
 - `accepted_name_usage_id`: taxon_id of the _accepted_ scientific name
-- `original_name_usage_id`: taxon_id of the _original_ scientific name if applicable
 - `scientific_name`
 - `accepted_name_usage`: the _accepted_ scientific name
-- `original_name_usage`: the _original_ scientific name if applicable
-- `taxonomic_status`: `accepted` or `synonym`
+- `taxonomic_status`: `accepted`, `homotypicSynonym` (for original names) and `heterotypicSynoym` (for all other synonyms)
 - higher classification information: `class`, `order`, `family` and `genus` 
 
-We map these terms in four steps:
+We map these terms in three steps:
 
 1. Generate `accepted_taxa` which contains all terms for the _accepted_ scientific names (in `input_taxa`).
   - `taxon_id`, `scientific_name` and the higher classification is already provided
@@ -143,10 +141,9 @@ We map these terms in four steps:
   - `scientific_name` is already provided
   - Add higher classification `class`, `order`, `family` and `genus` by joining with `input_taxa`
   - Generate `taxon_id`
-  - Map `taxonomic_status` (= `synonym`), `accepted_name_usage` (= `synonym_of`) and `accepted_name_usage_id` (= `taxon_id` from `taxon`)
+  - Map `taxonomic_status` (= `homotypicSynonym` or `heterotypicSynoym`), `accepted_name_usage` (= `synonym_of`) and `accepted_name_usage_id` (= `taxon_id` from `taxon`)
   
 3. Join  `synonyms` with `accepted_taxa` using the dplyr funtion `bind_rows()`
-4. Add information for original names when applicable
 
 ### Generate accepted_taxa
 
@@ -205,10 +202,12 @@ synonyms %<>%
                           sep = ":"))
 ```
 
-Map `taxonomic_status`:
+Map `taxonomic_status`. 
 
 ```{r}
-synonyms %<>% mutate(taxonomic_status = "synonym")
+synonyms %<>% mutate(taxonomic_status = case_when(
+  remarks == "original name" ~ "homotypicSynonym",
+  TRUE ~ "heterotypicSynonym"))
 ```
 
 Map `accepted_name_usage` and `accepted_name_usage_id`. This information is provided in `synonym_of` and `taxon_id_accepted` respectively. We thus only need to rename these columns:
@@ -218,17 +217,6 @@ synonyms <-
   synonyms %>% 
     rename("accepted_name_usage" = "synonym_of") %>% 
     rename("accepted_name_usage_id" = "taxon_id_accepted")
-```
-
-Save the link between `scientific_name`, `accepted_name_usage`, `taxon_id` and `remarks` for original names (i.e. filter on `remarks` = `original name`) for future join:
-
-```{r}
-original_names <-
-  synonyms %>% 
-    filter(remarks == "original name") %>% 
-    select(scientific_name, accepted_name_usage, taxon_id) %>% 
-    rename("original_name_usage" = "scientific_name") %>% 
-    rename("original_name_usage_id" = "taxon_id")
 ```
 
 Rearrange columns and add `taxonomy` (which is empty for `synonyms`) to enable future join with `accepted_taxa`:
@@ -243,12 +231,6 @@ Merge both datasets together in `taxon`:
 
 ```{r}
 taxon <- accepted_taxa %<>% bind_rows(synonyms)
-```
-
-Add original scientific names to `taxon`:
-
-```{r}
-taxon %<>% left_join(original_names, by = c("accepted_name_usage"))
 ```
 
 ## Term mapping
@@ -307,12 +289,6 @@ taxon %<>% mutate(dwc_taxonID = taxon_id)
 taxon %<>% mutate(dwc_acceptedNameUsageID = accepted_name_usage_id) 
 ```
 
-### originalNameUsageID
-
-```{r}
-taxon %<>% mutate(dwc_originalNameUsageID = original_name_usage_id) 
-```
-
 ### scientificName
 
 ```{r}
@@ -323,12 +299,6 @@ taxon %<>% mutate(dwc_scientificName = scientific_name)
 
 ```{r}
 taxon %<>% mutate(dwc_acceptedNameUsage = accepted_name_usage) 
-```
-
-### originalNameUsage
-
-```{r}
-taxon %<>% mutate(dwc_originalNameUsage = original_name_usage) 
 ```
 
 ### kingdom
