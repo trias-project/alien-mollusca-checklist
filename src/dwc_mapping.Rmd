@@ -427,10 +427,10 @@ This column currently contains the original column name, which we will recode to
 
 ```{r}
 input_vernacular_names %<>% mutate(dwc_language = recode(language,
-  "dutch" = "nl",
-  "english" = "en",
-  "french" = "fr",
-  "german" = "de"
+ "nl" = "dutch",
+  "en" = "english",
+  "fr" = "french",
+  "de" = "german"
 ))
 ```
 
