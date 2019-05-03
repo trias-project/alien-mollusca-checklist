@@ -427,11 +427,10 @@ This column currently contains the original column name, which we will recode to
 
 ```{r}
 input_vernacular_names %<>% mutate(dwc_language = recode(language,
- "nl" = "dutch",
-  "en" = "english",
-  "fr" = "french",
-  "de" = "german"
-))
+ "dutch" = "nl",
+ "english" = "en",
+ "french" = "fr",
+ "german" = "de"))
 ```
 
 ## Post-processing
@@ -440,7 +439,7 @@ Remove the original columns:
 
 ```{r}
 input_vernacular_names %<>% select(
-  -starts_with("dwc"))
+  starts_with("dwc"))
 ```
 
 Drop the `dwc_` prefix:
@@ -546,6 +545,12 @@ Information for source can be found in `source_distribution`.
 
 ```{r}
 distribution %<>% mutate(dwc_source = source_distribution) 
+```
+
+### taxonRemarks
+
+```{r}
+distribution %<>% mutate(dwc_taxonRemarks = taxonomy) 
 ```
 
 ## Post-processing
