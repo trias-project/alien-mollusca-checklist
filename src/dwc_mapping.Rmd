@@ -547,10 +547,11 @@ Information for source can be found in `source_distribution`.
 distribution %<>% mutate(dwc_source = source_distribution) 
 ```
 
-### taxonRemarks
+### occurrenceRemarks
 
 ```{r}
-distribution %<>% mutate(dwc_taxonRemarks = taxonomy) 
+distribution %<>% mutate(dwc_occurrenceRemarks = paste(
+  first_observation_text, distribution_belgium_text, sep = " ")) 
 ```
 
 ## Post-processing
