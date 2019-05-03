@@ -358,7 +358,7 @@ taxon %<>% mutate(dwc_taxonomicStatus = taxonomic_status)
 ### taxonRemarks
 
 ```{r}
-taxon %<>% mutate(taxonRemarks = taxonomy) 
+taxon %<>% mutate(dwc_taxonRemarks = taxonomy) 
 ```
 
 ## Post-processing
