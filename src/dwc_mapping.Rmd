@@ -372,8 +372,43 @@ taxon %<>% mutate(dwc_genus = genus)
 
 ### taxonRank
 
+We can exxtract the taxon rank information from GBIF using the `rgbif` package.
+
 ```{r}
-taxon %<>% mutate(dwc_taxonRank = "species")
+taxon_rank <- parsenames(taxon$dwc_scientificName)
+```
+
+Remove one 1 for the duplicated scientific name `Helix balteata Pollonera, 1892`:
+
+```{r}
+taxon_rank %<>% distinct(scientificname, rankmarker, .keep_all = FALSE)
+```
+
+Add information to `taxon`:
+
+```{r}
+taxon %<>% 
+  left_join(
+    select(taxon_rank, scientificname, rankmarker),
+    by = c("dwc_scientificName" = "scientificname"))
+```
+
+Inspect values for `rankmarker`:
+
+```{r}
+taxon %>% 
+  group_by(rankmarker) %>% 
+  summarize(records = n())
+```
+
+Recode values for `rankmarker` in `dwc_taxonRank`
+
+```{r}
+taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
+  "f." = "forma",
+  "infrasp." = "subspecies",
+  "sp." = "species",
+  "var." = "variety"))
 ```
 
 ### nomenclaturalCode
