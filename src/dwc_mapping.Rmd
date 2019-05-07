@@ -219,12 +219,20 @@ synonyms <-
     rename("accepted_name_usage_id" = "taxon_id_accepted")
 ```
 
-Rearrange columns and add `taxonomy` (which is empty for `synonyms`) to enable future join with `accepted_taxa`:
+Add `taxonomy` which is empty for most `synonyms`, except for `Ferussacia folliculus Schröter, 1784` and `Ferussacia follicula Schröter, 1784`:
+
+```{r}
+synonyms %<>% mutate(taxonomy = case_when(
+  scientific_name == "Ferussacia folliculus Schröter, 1784" | 
+    scientific_name == "Ferussacia follicula Schröter, 1784" ~ remarks,
+  TRUE ~ ""))
+```
+
+Rearrange columns to enable future join with `accepted_taxa`:
 
 ```{r}
 synonyms <- synonyms %>% 
-  select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status) %>%
-  mutate(taxonomy = "")
+  select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxonomy) 
 ```
 
 Merge both datasets together in `taxon`:
