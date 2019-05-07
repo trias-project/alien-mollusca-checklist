@@ -1,0 +1,976 @@
+---
+title: "Darwin Core mapping"
+subtitle: "For: alien-mollusca-checklist"
+author:
+- Lien Reyserhove
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+#  pdf_document:
+#    df_print: kable
+#    number_sections: yes
+#    toc: yes
+#    toc_depth: 3
+---
+
+# Setup 
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Load libraries:
+
+```{r}
+library(tidyverse)      # To do data science
+library(tidylog)        # To provide feedback on dplyr functions
+library(magrittr)       # To use %<>% pipes
+library(here)           # To find files
+library(janitor)        # To clean input data
+library(digest)         # To generate hashes
+library(rgbif)          # To use GBIF services
+library(googlesheets)   # To import and read Google spreadsheets 
+```
+
+# Read source data
+
+Set column types:
+
+```{r}
+col_types = cols(
+   .default = col_character(),
+    other_col = col_double())
+```
+
+The original spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1hSXd6SZQUvI8uGbE_5-vmN8ZZz739D46HRt2aTFcb-s/edit#gid=0). We need to retrieve this spreadsheet and select the specific worksheets first:
+
+Retrieve the spreadsheet:
+
+```{r connect_google_spreadsheets}
+retrieve_spreadsheet <- gs_title("alien mollusca checklist")
+```
+
+Select the data in the worksheets:
+
+```{r read_source_data}
+input_taxa <- retrieve_spreadsheet %>% gs_read("taxa", col_types = col_types)
+input_vernacular_names <- retrieve_spreadsheet %>% gs_read("vernacular_names", col_types = col_types)
+input_synonyms <- retrieve_spreadsheet %>% gs_read("synonyms", col_types = col_types)
+input_references <- retrieve_spreadsheet %>% gs_read("references", col_types = col_types)
+```
+
+We want to add a copy of the source data to the repository:
+
+```{r}
+write_csv(input_taxa, here("data", "raw", "input_taxa.csv"), na = "")
+write_csv(input_vernacular_names, here("data", "raw", "input_vernacular_names.csv"), na = "")
+write_csv(input_synonyms, here("data", "raw", "input_synonyms.csv"), na = "")
+write_csv(input_references, here("data", "raw", "input_references.csv"), na = "")
+```
+
+# Pre-processing
+
+## Clean files:
+
+`input_vernacular_names`, `input_synonyms` and `input_references` contain empty rows, we remove those here:
+
+```{r}
+input_vernacular_names %<>% remove_empty("rows") 
+input_synonyms %<>% remove_empty("rows") 
+input_references %<>% remove_empty("rows") 
+```
+
+## Scientific names
+
+Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in `taxa`:
+
+```{r}
+parsed_names <- input_taxa %>%
+  distinct(scientific_name) %>%
+  pull() %>% # Create vector from dataframe
+  parsenames() # An rgbif function
+```
+
+All scientific names are of `type = SCIENTIFIC` and need no further processing.
+
+## Taxon IDs
+
+To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`.
+Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name.
+
+```{r}
+vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
+input_taxa %<>% 
+  mutate(taxon_id = paste("alien-mollusca-checklist", 
+                          "taxon",
+                          vdigest(scientific_name, algo = "md5"), 
+                          sep = ":"))
+```
+
+# Taxon core
+
+## Pre-processing
+
+Taxonomic information is provided in two different dataframes: 
+- `input_taxa` including all _accepted_ scientific names
+- `input_synonyms` including all scientific names of _synonyms_
+
+For some of the taxa, the original name is provided, i.e. the scientific name as it originally appeared when the name was first established under the rules of the associated nomenclatural code. These original names can be extracted from `input_synyms`: these are the `scientific_name` for which `remarks` = `original name`. 
+
+For each scientific name in this checklist (accepted or synonym), the taxon Core will thus inlcude the following information
+
+- `taxon_id`: taxon_id of the scientific name
+- `accepted_name_usage_id`: taxon_id of the _accepted_ scientific name
+- `scientific_name`
+- `accepted_name_usage`: the _accepted_ scientific name
+- `taxonomic_status`: `accepted`, `homotypicSynonym` (for original names) and `heterotypicSynoym` (for all other synonyms)
+- higher classification information: `class`, `order`, `family` and `genus` 
+
+We map these terms in three steps:
+
+1. Generate `accepted_taxa` which contains all terms for the _accepted_ scientific names (in `input_taxa`).
+  - `taxon_id`, `scientific_name` and the higher classification is already provided
+  - Map `taxonomic_status` (= `accepted`), `accepted_name_usage` (= `scientific_name`) and `accepted_name_usage_id` (= `taxon_id`)
+  
+2. Generate `synonyms` which contains all terms for the _synonyms_ (in `input_synonyms`). 
+  - `scientific_name` is already provided
+  - Add higher classification `class`, `order`, `family` and `genus` by joining with `input_taxa`
+  - Generate `taxon_id`
+  - Map `taxonomic_status` (= `homotypicSynonym` or `heterotypicSynoym`), `accepted_name_usage` (= `synonym_of`) and `accepted_name_usage_id` (= `taxon_id` from `taxon`)
+  
+3. Join  `synonyms` with `accepted_taxa` using the dplyr funtion `bind_rows()`
+
+### Generate accepted_taxa
+
+Generate `accepted_taxa` by extracting all taxonomic information from `input_taxa`:
+
+```{r}
+accepted_taxa <- input_taxa %>% select(taxon_id, scientific_name, class, order, family, genus, taxonomy)
+```
+
+Map `taxonomic_status` which is `accepted`:
+
+```{r}
+accepted_taxa %<>% mutate(taxonomic_status = "accepted")
+```
+
+Map `accepted_name_usage` and `accepted_name_usage_id`:
+
+```{r}
+accepted_taxa <-
+  accepted_taxa %>% 
+    mutate(accepted_name_usage = scientific_name) %>% 
+    mutate(accepted_name_usage_id = taxon_id)
+```
+
+Order terms to enable future join with `synonyms`:
+
+```{r}
+accepted_taxa %<>% select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxonomy) 
+```
+
+### Generate synonyms
+
+Join `synonyms` with `accepted_taxa` to extract higher classification:
+
+```{r}
+synonyms <- 
+  input_synonyms %>% 
+    left_join(
+      select(accepted_taxa, scientific_name, taxon_id, class, order, family, genus),
+      by = c("synonym_of" = "scientific_name"))
+```
+
+Rename  `taxon_id` from `accepted_taxa` to avoid confusion with the future mapping of `taxon_id` from `synonyms`:
+
+```{r}
+synonyms %<>% rename("taxon_id_accepted" = "taxon_id")
+```
+
+Map `taxon_id` for synonyms:
+
+```{r}
+synonyms %<>% 
+  mutate(taxon_id = paste("alien-mollusca-checklist", 
+                          "taxon",
+                          vdigest(scientific_name, algo = "md5"), 
+                          sep = ":"))
+```
+
+One scientific name is duplicated in `synonyms`:
+
+```{r}
+synonyms %>% 
+  slice(which(duplicated(synonyms$scientific_name))) %>% 
+  select(scientific_name)
+```
+
+This is because `Helix balteata Pollonera, 1892` is both a synonym of `Cernuella virgata (Da Costa, 1778)` and `Cernuella cisalpina (Rossmässler, 1837)`. We need to manually adjust the  `taxonID` for these records:
+
+```{r}
+synonyms %<>% mutate(taxon_id = case_when(
+  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella virgata (Da Costa, 1778)" ~ paste(taxon_id, "1", sep = "_"),
+  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella cisalpina (Rossmässler, 1837)" ~ paste(taxon_id, "2", sep = "_"),
+  TRUE ~ taxon_id))
+```
+
+Check whether taxonID's are still duplicated:
+
+```{r}
+synonyms %>% 
+  slice(which(duplicated(synonyms$taxon_id))) %>% 
+  select(scientific_name)
+```
+
+Map `taxonomic_status`. 
+
+```{r}
+synonyms %<>% mutate(taxonomic_status = case_when(
+  remarks == "original name" ~ "homotypicSynonym",
+  TRUE ~ "heterotypicSynonym"))
+```
+
+Map `accepted_name_usage` and `accepted_name_usage_id`. This information is provided in `synonym_of` and `taxon_id_accepted` respectively. We thus only need to rename these columns:
+
+```{r}
+synonyms <- 
+  synonyms %>% 
+    rename("accepted_name_usage" = "synonym_of") %>% 
+    rename("accepted_name_usage_id" = "taxon_id_accepted")
+```
+
+Add `taxonomy` which is empty for most `synonyms`, except for `Ferussacia folliculus Schröter, 1784` and `Ferussacia follicula Schröter, 1784`:
+
+```{r}
+synonyms %<>% mutate(taxonomy = case_when(
+  scientific_name == "Ferussacia folliculus Schröter, 1784" | 
+    scientific_name == "Ferussacia follicula Schröter, 1784" ~ remarks,
+  TRUE ~ ""))
+```
+
+Rearrange columns to enable future join with `accepted_taxa`:
+
+```{r}
+synonyms <- synonyms %>% 
+  select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxonomy) 
+```
+
+Merge both datasets together in `taxon`:
+
+```{r}
+taxon <- accepted_taxa %<>% bind_rows(synonyms)
+```
+
+## Term mapping
+
+Map the data to [Darwin Core Taxon](http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml).
+
+Start with record-level terms which contain metadata about the dataset (which is generally the same for all records).
+
+### language
+
+```{r}
+taxon %<>% mutate(dwc_language = "en")
+```
+
+### license
+
+```{r}
+taxon %<>% mutate(dwc_license = "http://creativecommons.org/publicdomain/zero/1.0/")
+```
+
+### rightsHolder
+
+```{r}
+taxon %<>% mutate(dwc_rightsHolder = "Royal Belgian Institute of Natural Sciences")
+```
+
+### datasetID
+
+```{r}
+taxon %<>% mutate(dwc_datasetID = "")
+```
+
+### institutionCode
+
+```{r}
+taxon %<>% mutate(dwc_institutionCode = "RBINS")
+```
+
+### datasetName
+
+```{r}
+taxon %<>% mutate(dwc_datasetName = "Registry of introduced terrestrial molluscs in Belgium")
+```
+
+The following terms contain information about the taxon:
+
+### taxonID
+
+```{r}
+taxon %<>% mutate(dwc_taxonID = taxon_id) 
+```
+
+### acceptedNameUsageID
+
+```{r}
+taxon %<>% mutate(dwc_acceptedNameUsageID = accepted_name_usage_id) 
+```
+
+### scientificName
+
+```{r}
+taxon %<>% mutate(dwc_scientificName = scientific_name)
+```
+
+### acceptedNameUsage
+
+```{r}
+taxon %<>% mutate(dwc_acceptedNameUsage = accepted_name_usage) 
+```
+
+### kingdom
+
+```{r}
+taxon %<>% mutate(dwc_kingdom = "Animalia")
+```
+
+### phylum
+
+```{r}
+taxon %<>% mutate(dwc_phylum = "Mollusca") 
+```
+
+### class
+
+```{r}
+taxon %<>% mutate(dwc_class = class)
+```
+
+### order
+
+```{r}
+taxon %<>% mutate(dwc_order = order) 
+```
+
+### family
+
+```{r}
+taxon %<>% mutate(dwc_family = family) 
+```
+
+### genus
+
+```{r}
+taxon %<>% mutate(dwc_genus = genus)
+```
+
+### taxonRank
+
+We can exxtract the taxon rank information from GBIF using the `rgbif` package.
+
+```{r}
+taxon_rank <- parsenames(taxon$dwc_scientificName)
+```
+
+Remove one 1 for the duplicated scientific name `Helix balteata Pollonera, 1892`:
+
+```{r}
+taxon_rank %<>% distinct(scientificname, rankmarker, .keep_all = FALSE)
+```
+
+Add information to `taxon`:
+
+```{r}
+taxon %<>% 
+  left_join(
+    select(taxon_rank, scientificname, rankmarker),
+    by = c("dwc_scientificName" = "scientificname"))
+```
+
+Inspect values for `rankmarker`:
+
+```{r}
+taxon %>% 
+  group_by(rankmarker) %>% 
+  summarize(records = n())
+```
+
+Recode values for `rankmarker` in `dwc_taxonRank`
+
+```{r}
+taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
+  "f." = "forma",
+  "infrasp." = "subspecies",
+  "sp." = "species",
+  "var." = "variety"))
+```
+
+### nomenclaturalCode
+
+```{r}
+taxon %<>% mutate(dwc_nomenclaturalCode = "ICZN")
+```
+
+### taxonomicStatus
+
+```{r}
+taxon %<>% mutate(dwc_taxonomicStatus = taxonomic_status) 
+```
+
+### taxonRemarks
+
+```{r}
+taxon %<>% mutate(dwc_taxonRemarks = taxonomy) 
+```
+
+## Post-processing
+
+Only keep the Darwin Core columns:
+
+```{r}
+taxon %<>% select(starts_with("dwc_"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(taxon) <- str_remove(colnames(taxon), "dwc_")
+```
+
+Preview data:
+
+```{r}
+taxon %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
+```
+
+# Vernacular names extension
+
+## Term mapping
+
+Map the data to [Vernacular Names](http://rs.gbif.org/extension/gbif/1.0/vernacularname.xml).
+
+### taxonID
+
+Merge with `taxon_id`:
+
+```{r}
+input_vernacular_names %<>% left_join(
+  select(input_taxa, scientific_name, taxon_id), 
+  by = "scientific_name")
+```
+
+Rename to `dwc_taxonID`:
+
+```{r}
+input_vernacular_names %<>% rename("dwc_taxonID" = "taxon_id") 
+```
+ 
+### vernacularName
+
+```{r}
+input_vernacular_names %<>% mutate(dwc_vernacularName = vernacular_name)
+```
+
+### language
+
+```{r}
+input_vernacular_names %>%
+  group_by(language) %>% 
+  summarize(records = n())
+```
+
+This column currently contains the original column name, which we will recode to the ISO 639-1 language code:
+
+```{r}
+input_vernacular_names %<>% mutate(dwc_language = recode(language,
+ "dutch" = "nl",
+ "english" = "en",
+ "french" = "fr",
+ "german" = "de"))
+```
+
+## Post-processing
+
+Remove the original columns: 
+
+```{r}
+input_vernacular_names %<>% select(
+  starts_with("dwc"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(input_vernacular_names) <- str_remove(colnames(input_vernacular_names), "dwc_")
+```
+
+Preview data:
+
+```{r}
+input_vernacular_names %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(input_vernacular_names, here("data", "processed", "vernacularnames.csv"), na = "")
+```
+
+# Distribution extension:
+
+Create separate dataframe:
+
+```{r}
+distribution <- input_taxa
+```
+
+Preview:
+
+```{r}
+distribution %>% head()
+```
+
+
+## Term mapping
+
+```{r}
+distribution <- input_taxa
+```
+
+Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
+
+### taxonID
+
+Rename `taxon_id` to `dwc_taxonID`:
+
+```{r}
+distribution %<>% rename("dwc_taxonID" = "taxon_id") 
+```
+
+### locationID
+
+```{r}
+distribution %<>% mutate(dwc_locationID = "ISO_3166-2:BE") 
+```
+
+### locality
+
+```{r}
+distribution %<>% mutate(dwc_locality = "Belgium") 
+```
+
+### countryCode
+
+```{r}
+distribution %<>% mutate(dwc_countryCode = "BE") 
+```
+
+### occurrenceStatus
+
+`occurrenceStatus` should be `present`, `doubtful` or `absent`:
+
+```{r}
+distribution %>% 
+  group_by(occurrence_status) %>% 
+  summarize(records = n())
+```
+
+```{r}
+distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
+```
+
+### establishmentMeans
+
+```{r}
+distribution %<>% mutate(dwc_establishmentMeans = "introduced") 
+```
+
+### eventDate
+
+The dataset integrates two fields with date information: `first_observation`, which is _always_ populated, and `last_observation`, which is _often empty_. From these columns, we create `eventDate` (ISO 8601 format: `yyyy` or `yyyy`/`yyyy`).
+
+```{r}
+distribution %<>% mutate(dwc_eventDate = case_when(
+  is.na(last_observation) ~ first_observation,
+  TRUE ~ paste(first_observation, last_observation, sep = "/")))
+```
+
+### source
+
+Information for source can be found in `source_distribution`.
+
+```{r}
+distribution %<>% mutate(dwc_source = source_distribution) 
+```
+
+### occurrenceRemarks
+
+```{r}
+distribution %<>% mutate(dwc_occurrenceRemarks = paste(
+  first_observation_text, distribution_belgium_text, sep = " ")) 
+```
+
+## Post-processing
+
+Only keep the Darwin Core columns:
+
+```{r}
+distribution %<>% select(starts_with("dwc_"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(distribution) <- str_remove(colnames(distribution), "dwc_")
+```
+
+Preview data:
+
+```{r}
+distribution %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
+```
+
+# Literature reference extension
+
+### taxonID
+
+Merge with `input_taxa` to retrieve `taxon_id`:
+
+```{r}
+input_references %<>% left_join(
+  select(input_taxa, scientific_name, taxon_id),
+  by = "scientific_name")
+```
+
+Rename to `dwc_taxonID`:
+
+```{r}
+input_references %<>% rename("dwc_taxonID" = "taxon_id") 
+```
+
+### identifier
+
+```{r}
+input_references %<>% mutate(dwc_identifier = shortref)
+```
+
+### bibliographicCitation
+
+```{r}
+input_references %<>% mutate(dwc_bibliographicCitation = reference) 
+```
+
+## Post-processing
+
+Only keep the Darwin Core columns:
+
+```{r}
+input_references %<>% select(starts_with("dwc_"))
+```
+
+Drop the `dwc_` prefix:
+
+```{r}
+colnames(input_references) <- str_remove(colnames(input_references), "dwc_")
+```
+
+Preview data:
+
+```{r}
+input_references %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_csv(input_references, here("data", "processed", "references.csv"), na = "")
+```
+
+## Description extension
+
+In the description extension we want to include several important characteristics (hereafter refered to as descriptors) about the species:
+
+- Native range
+- Pathway of introduction
+- Degree of establishment
+
+A single taxon can have multiple descriptions of the same type (e.g. multiple native ranges), expressed as multiple rows in the description extension.
+
+For each descriptor, we create a separate dataframe to process the specific information. We always specify _which descriptor_ we map (`type` column) and its _specific content_ (`description` column). After the mapping of these Darwin Core terms `type` and `value`, we merge the dataframes to generate one single description extension. We then continue the mapping process by adding the other Darwin Core terms (which content is independent of the type of descriptor, such as `language`).
+
+### Native range
+
+Create separate dataframe:
+
+```{r start_native_range}
+native_range <- input_taxa
+```
+
+Inspect data:
+
+```{r}
+native_range %>% 
+  group_by(native_range) %>% 
+  summarize(records = n())
+```
+
+Separate by ` | `:
+
+```{r}
+native_range %<>% separate(native_range, 
+                          into = paste("native_range",c(1:9),sep="_"),
+                          remove = FALSE,
+                          sep = "(\\s\\|\\s)")
+```
+
+Gather data:
+
+```{r}
+native_range %<>% gather(key = "native_range",
+                         value = "value",
+                         paste("native_range",c(1:9),sep="_"),
+                         na.rm = TRUE)
+```
+
+Inspect data:
+
+```{r}
+native_range %>% 
+  group_by(value) %>% 
+  summarize(records = n())
+```
+
+Rename `value` to `description`:
+
+```{r}
+native_range %<>% rename("description" = "value")
+```
+
+Create `type`:
+
+```{r}
+native_range %<>% mutate(type = "native range") 
+```
+
+Remove `native_range`:
+
+```{r}
+native_range %<>% select(-native_range) 
+```
+
+### Pathways
+
+Create separate dataframe:
+
+```{r start_pathways}
+pathways <- input_taxa
+```
+
+Inspect data:
+
+```{r}
+pathways %>% 
+  group_by(introduction_pathway) %>% 
+  summarize(records = n())
+```
+
+Separate by ` | `:
+
+```{r}
+pathways %<>% separate(introduction_pathway, 
+                          into = paste("introduction_pathway",c(1:4),sep="_"),
+                          sep = "(\\s\\|\\s)",
+                          remove = FALSE)
+```
+
+Gather data:
+
+```{r}
+pathways %<>% gather(key = "key",
+                     value = "value",
+                     paste("introduction_pathway",c(1:4),sep="_"),
+                     na.rm = TRUE)
+```
+
+Inspect data:
+
+```{r}
+pathways %>% 
+  group_by(value) %>% 
+  summarize(records = n())
+```
+
+Map to [controlled vocabulary](https://github.com/trias-project/vocab/blob/master/vocabulary/pathway/pathways.tsv) for pathways, based on the [CBD standard](https://www.cbd.int/doc/meetings/sbstta/sbstta-18/official/sbstta-18-09-add1-en.pdf) and developed for TrIAS:
+
+```{r}
+pathways %<>% mutate(description = recode(value,
+  "Contaminant: Contaminant on plants" = "contaminant_on_plants",
+  "Contaminant: Transportation of habitat material" = "contaminant_habitat_material",
+  "Escape : Pet" = "escape_pet",
+  "Escape: Research and ex-situ breeding" = "escape_research",
+  "Release: Other intentional use" = "release_other",
+  "Stowaway" = "stowaway",
+  "Stowaway: Container" = "stowaway_container",
+  "Stowaway: Hitchhikers on ship" = "stowaway_ship",
+  "Stowaway: People and their luggage" = "stowaway_people_luggage",
+  "Stowaway: Vehicles" = "stowaway_vehicles",
+  "Unaided" = "unaided")) 
+```
+
+Add prefix `cbd_2014_pathway`:
+
+```{r}
+pathways %<>% mutate(description = paste ("cbd_2014_pathway", description, sep = ":"))
+```
+
+Inspect mapping:
+
+```{r}
+pathways %>% 
+  group_by(value, description) %>% 
+  summarize(records = n())
+```
+
+Map `type`:
+
+```{r}
+pathways %<>% mutate(type = "pathway")
+```
+
+Remove `key` and `value`:
+
+```{r}
+pathways %<>% select(-key, -value) 
+```
+
+### Degree of establishment
+
+Create separate dataframe:
+
+```{r start_pathways}
+degree_of_establishment <- input_taxa
+```
+
+Inspect data:
+
+```{r}
+degree_of_establishment %>% 
+  group_by(degree_of_establishment) %>% 
+  summarize(records = n()) 
+```
+
+We map the data to the [Blackburn et al. 2011](http://doc.rero.ch/record/24725/files/bach_puf.pdf) proposed framework for biological invatsions. Each stage (A - E) represents a specific degree of establishment. When multiple stages are provided, we default to the most established of Blackburn's categories, see [issue 10](https://github.com/trias-project/alien-mollusca-checklist/issues/10).
+
+```{r}
+degree_of_establishment %<>% mutate(description = recode(degree_of_establishment,
+  "C0 - C3" = "C3",
+  "C1 - C3" = "C3",
+  "C3, D1, D2" = "D2",
+  "D2, E" = "E")) 
+```
+
+Add prefix `blackburn_et_al_2011:` to refer to the framework:
+
+```{r}
+degree_of_establishment %<>% mutate(description = paste ("blackburn_et_al_2011", description, sep = ":"))
+```
+
+Inspect mapping:
+
+```{r}
+degree_of_establishment %>% 
+  group_by(degree_of_establishment, description) %>% 
+  summarize(records = n()) 
+```
+
+Map `type`:
+
+```{r}
+degree_of_establishment %<>% mutate(type = "degree of establishment") 
+```
+
+## Union description
+
+Bind `native_range`, `pathways` and `degree_of_establishment` by rows:
+
+```{r}
+description <- bind_rows(native_range, pathways, degree_of_establishment)
+```
+
+## Map terms
+
+### taxonID
+
+```{r}
+description %<>% mutate(dwc_taxonID = taxon_id)
+```
+
+### description
+
+```{r}
+description %<>% mutate(dwc_description = description) 
+```
+
+### type
+
+```{r}
+description %<>% mutate(dwc_type = type) 
+```
+
+### language
+
+```{r}
+description %<>% mutate(dwc_language = "en") 
+```
+
+## Post-processing
+
+Keep columns with `dwc_` prefix only:
+
+```{r}
+description %<>% select(starts_with("dwc_"))
+```
+
+Remove prefix `dwc_`:
+
+```{r}
+colnames(description) <- str_remove(colnames(description), "dwc_")
+```
+
+Sort on `taxonID` to group description information per taxon:
+
+```{r}
+description %<>% arrange(taxonID)
+```
+
+Preview data:
+
+```{r}
+description %>% head(10)
+```
+
+Save to CSV:
+
+```{r}
+write_csv(description, here("data","processed","description.csv"))
+```
+
+
