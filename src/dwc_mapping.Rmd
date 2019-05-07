@@ -214,8 +214,8 @@ This is because `Helix balteata Pollonera, 1892` is both a synonym of `Cernuella
 
 ```{r}
 synonyms %<>% mutate(taxon_id = case_when(
-  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella virgata (Da Costa, 1778)" ~ paste(taxon_id, "1", sep = "_"),
-  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella cisalpina (Rossmässler, 1837)" ~ paste(taxon_id, "2", sep = "_"),
+  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella virgata (Da Costa, 1778)" ~ paste(taxon_id, "1", sep = ":"),
+  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella cisalpina (Rossmässler, 1837)" ~ paste(taxon_id, "2", sep = ":"),
   TRUE ~ taxon_id))
 ```
 
@@ -231,6 +231,7 @@ Map `taxonomic_status`.
 
 ```{r}
 synonyms %<>% mutate(taxonomic_status = case_when(
+  scientific_name == "Helix balteata Pollonera, 1892" ~ "proParteSynonym",
   remarks == "original name" ~ "homotypicSynonym",
   TRUE ~ "heterotypicSynonym"))
 ```
@@ -452,7 +453,7 @@ taxon %>% head()
 Save to CSV:
 
 ```{r}
-write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
+write_csv(taxon, here("data", "processed", "taxon.tsv"), na = "")
 ```
 
 # Vernacular names extension
