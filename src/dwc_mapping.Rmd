@@ -866,7 +866,7 @@ pathways %<>% select(-key, -value)
 
 Create separate dataframe:
 
-```{r start_pathways}
+```{r start_degree_of_establishment}
 degree_of_establishment <- input_taxa
 ```
 
