@@ -202,6 +202,31 @@ synonyms %<>%
                           sep = ":"))
 ```
 
+One scientific name is duplicated in `synonyms`:
+
+```{r}
+synonyms %>% 
+  slice(which(duplicated(synonyms$scientific_name))) %>% 
+  select(scientific_name)
+```
+
+This is because `Helix balteata Pollonera, 1892` is both a synonym of `Cernuella virgata (Da Costa, 1778)` and `Cernuella cisalpina (Rossmässler, 1837)`. We need to manually adjust the  `taxonID` for these records:
+
+```{r}
+synonyms %<>% mutate(taxon_id = case_when(
+  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella virgata (Da Costa, 1778)" ~ paste(taxon_id, "1", sep = "_"),
+  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella cisalpina (Rossmässler, 1837)" ~ paste(taxon_id, "2", sep = "_"),
+  TRUE ~ taxon_id))
+```
+
+Check whether taxonID's are still duplicated:
+
+```{r}
+synonyms %>% 
+  slice(which(duplicated(synonyms$taxon_id))) %>% 
+  select(scientific_name)
+```
+
 Map `taxonomic_status`. 
 
 ```{r}
