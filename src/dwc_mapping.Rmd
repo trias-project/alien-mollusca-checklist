@@ -453,7 +453,7 @@ taxon %>% head()
 Save to CSV:
 
 ```{r}
-write_csv(taxon, here("data", "processed", "taxon.tsv"), na = "")
+write_delim(taxon, here("data", "processed", "taxon.tsv"), delim = "\t", na = "")
 ```
 
 # Vernacular names extension
@@ -526,7 +526,7 @@ input_vernacular_names %>% head()
 Save to CSV:
 
 ```{r}
-write_csv(input_vernacular_names, here("data", "processed", "vernacularnames.csv"), na = "")
+write_delim(input_vernacular_names, here("data", "processed", "vernacularnames.tsv"), delim = "\t", na = "")
 ```
 
 # Distribution extension:
@@ -646,7 +646,7 @@ distribution %>% head()
 Save to CSV:
 
 ```{r}
-write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
+write_delim(distribution, here("data", "processed", "distribution.tsv"), delim = "\t", na = "")
 ```
 
 # Literature reference extension
@@ -702,7 +702,7 @@ input_references %>% head()
 Save to CSV:
 
 ```{r}
-write_csv(input_references, here("data", "processed", "references.csv"), na = "")
+write_delim(input_references, here("data", "processed", "references.tsv"), delim = "\t", na = "")
 ```
 
 ## Description extension
@@ -971,7 +971,7 @@ description %>% head(10)
 Save to CSV:
 
 ```{r}
-write_csv(description, here("data","processed","description.csv"))
+write_delim(description, here("data","processed","description.tsv"), delim = "\t")
 ```
 
 
