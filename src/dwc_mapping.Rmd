@@ -529,6 +529,78 @@ Save to CSV:
 write_delim(input_vernacular_names, here("data", "processed", "vernacularnames.tsv"), delim = "\t", na = "")
 ```
 
+# Species Profile extension:
+
+Create separate dataframe:
+
+```{r}
+species_profile <- input_taxa
+```
+
+Information for species profile is contained in the field `realm`:
+
+```{r}
+species_profile %>% 
+  group_by(realm) %>% 
+  summarize(records = n())
+```
+
+Conclusion: all species are terrestrial.
+
+Map the data to [Species Profile](http://rs.gbif.org/extension/gbif/1.0/speciesprofile.xml).
+
+### taxonID
+
+Rename `taxon_id` to `dwc_taxonID`:
+
+```{r}
+species_profile %<>% rename("dwc_taxonID" = "taxon_id") 
+```
+
+### isMarine
+
+```{r}
+species_profile %<>% mutate("dwc_isMarine" = FALSE)
+```
+
+### isFreshwater
+
+```{r}
+species_profile %<>% mutate("dwc_isFreshwater" = FALSE)
+```
+
+### isTerrestrial
+
+```{r}
+species_profile %<>% mutate("dwc_isTerrestrial" = TRUE)
+```
+
+## Post-processing
+
+Keep only terms with `dwc_` prefix:
+
+```{r}
+species_profile %<>% select(starts_with("dwc_")) 
+```
+
+Remove prefix `dwc_`:
+
+```{r}
+colnames(species_profile) <- str_remove(colnames(species_profile), "dwc_") 
+```
+
+Preview data:
+
+```{r}
+species_profile %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write_delim(species_profile, here("data", "processed", "speciesprofile.tsv"), delim = "\t", na = "")
+```
+
 # Distribution extension:
 
 Create separate dataframe:
