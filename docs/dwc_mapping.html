@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Lien Reyserhove" />
+
+<meta name="date" content="2019-05-15" />
+
+<title>Darwin Core mapping</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/yeti.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="static\css\trias.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 45px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h2 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h3 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h4 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h5 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h6 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">alien-mollusca-checklist</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="dwc_mapping.html">Darwin Core mapping</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/trias-project/alien-mollusca-belgium">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Darwin Core mapping</h1>
+<h3 class="subtitle"><em>For: alien-mollusca-checklist</em></h3>
+<h4 class="author"><em>Lien Reyserhove</em></h4>
+<h4 class="date"><em>2019-05-15</em></h4>
+
+</div>
+
+
+<div id="setup" class="section level1">
+<h1><span class="header-section-number">1</span> Setup</h1>
+<p>Load libraries:</p>
+<pre class="r"><code>library(tidyverse)      # To do data science
+library(tidylog)        # To provide feedback on dplyr functions
+library(magrittr)       # To use %&lt;&gt;% pipes
+library(here)           # To find files
+library(janitor)        # To clean input data
+library(digest)         # To generate hashes
+library(rgbif)          # To use GBIF services
+library(googlesheets)   # To import and read Google spreadsheets </code></pre>
+</div>
+<div id="read-source-data" class="section level1">
+<h1><span class="header-section-number">2</span> Read source data</h1>
+<p>Set column types:</p>
+<pre class="r"><code>col_types = cols(
+   .default = col_character(),
+    other_col = col_double())</code></pre>
+<p>The original spreadsheet can be found <a href="https://docs.google.com/spreadsheets/d/1hSXd6SZQUvI8uGbE_5-vmN8ZZz739D46HRt2aTFcb-s/edit#gid=0">here</a>. We need to retrieve this spreadsheet and select the specific worksheets first:</p>
+<p>Retrieve the spreadsheet:</p>
+<pre class="r"><code>retrieve_spreadsheet &lt;- gs_title(&quot;alien mollusca checklist&quot;)</code></pre>
+<p>Select the data in the worksheets:</p>
+<pre class="r"><code>input_taxa &lt;- retrieve_spreadsheet %&gt;% gs_read(&quot;taxa&quot;, col_types = col_types)
+input_vernacular_names &lt;- retrieve_spreadsheet %&gt;% gs_read(&quot;vernacular_names&quot;, col_types = col_types)
+input_synonyms &lt;- retrieve_spreadsheet %&gt;% gs_read(&quot;synonyms&quot;, col_types = col_types)
+input_references &lt;- retrieve_spreadsheet %&gt;% gs_read(&quot;references&quot;, col_types = col_types)</code></pre>
+<p>We want to add a copy of the source data to the repository:</p>
+<pre class="r"><code>write_csv(input_taxa, here(&quot;data&quot;, &quot;raw&quot;, &quot;input_taxa.csv&quot;), na = &quot;&quot;)
+write_csv(input_vernacular_names, here(&quot;data&quot;, &quot;raw&quot;, &quot;input_vernacular_names.csv&quot;), na = &quot;&quot;)
+write_csv(input_synonyms, here(&quot;data&quot;, &quot;raw&quot;, &quot;input_synonyms.csv&quot;), na = &quot;&quot;)
+write_csv(input_references, here(&quot;data&quot;, &quot;raw&quot;, &quot;input_references.csv&quot;), na = &quot;&quot;)</code></pre>
+</div>
+<div id="pre-processing" class="section level1">
+<h1><span class="header-section-number">3</span> Pre-processing</h1>
+<div id="clean-files" class="section level2">
+<h2><span class="header-section-number">3.1</span> Clean files:</h2>
+<p><code>input_vernacular_names</code>, <code>input_synonyms</code> and <code>input_references</code> contain empty rows, we remove those here:</p>
+<pre class="r"><code>input_vernacular_names %&lt;&gt;% remove_empty(&quot;rows&quot;) 
+input_synonyms %&lt;&gt;% remove_empty(&quot;rows&quot;) 
+input_references %&lt;&gt;% remove_empty(&quot;rows&quot;) </code></pre>
+</div>
+<div id="scientific-names" class="section level2">
+<h2><span class="header-section-number">3.2</span> Scientific names</h2>
+<p>Use the <a href="https://www.gbif.org/tools/name-parser">GBIF nameparser</a> to retrieve nomenclatural information for the scientific names in <code>taxa</code>:</p>
+<pre class="r"><code>parsed_names &lt;- input_taxa %&gt;%
+  distinct(scientific_name) %&gt;%
+  pull() %&gt;% # Create vector from dataframe
+  parsenames() # An rgbif function</code></pre>
+<p>All scientific names are of <code>type = SCIENTIFIC</code> and need no further processing.</p>
+</div>
+<div id="taxon-ids" class="section level2">
+<h2><span class="header-section-number">3.3</span> Taxon IDs</h2>
+<p>To link taxa with information in the extension(s), each taxon needs a unique and relatively stable <code>taxonID</code>. Here we create one in the form of <code>dataset_shortname:taxon:hash</code>, where <code>hash</code> is unique code based on scientific name.</p>
+<pre class="r"><code>vdigest &lt;- Vectorize(digest) # Vectorize digest function to work with vectors
+input_taxa %&lt;&gt;% 
+  mutate(taxon_id = paste(&quot;alien-mollusca-checklist&quot;, 
+                          &quot;taxon&quot;,
+                          vdigest(scientific_name, algo = &quot;md5&quot;), 
+                          sep = &quot;:&quot;))</code></pre>
+</div>
+</div>
+<div id="taxon-core" class="section level1">
+<h1><span class="header-section-number">4</span> Taxon core</h1>
+<div id="pre-processing-1" class="section level2">
+<h2><span class="header-section-number">4.1</span> Pre-processing</h2>
+<p>Taxonomic information is provided in two different dataframes: - <code>input_taxa</code> including all <em>accepted</em> scientific names - <code>input_synonyms</code> including all scientific names of <em>synonyms</em></p>
+<p>For some of the taxa, the original name is provided, i.e. the scientific name as it originally appeared when the name was first established under the rules of the associated nomenclatural code. These original names can be extracted from <code>input_synyms</code>: these are the <code>scientific_name</code> for which <code>remarks</code> = <code>original name</code>.</p>
+<p>For each scientific name in this checklist (accepted or synonym), the taxon Core will thus inlcude the following information</p>
+<ul>
+<li><code>taxon_id</code>: taxon_id of the scientific name</li>
+<li><code>accepted_name_usage_id</code>: taxon_id of the <em>accepted</em> scientific name</li>
+<li><code>scientific_name</code></li>
+<li><code>accepted_name_usage</code>: the <em>accepted</em> scientific name</li>
+<li><code>taxonomic_status</code>: <code>accepted</code>, <code>homotypicSynonym</code> (for original names) and <code>heterotypicSynoym</code> (for all other synonyms)</li>
+<li>higher classification information: <code>class</code>, <code>order</code>, <code>family</code> and <code>genus</code></li>
+</ul>
+<p>We map these terms in three steps:</p>
+<ol style="list-style-type: decimal">
+<li>Generate <code>accepted_taxa</code> which contains all terms for the <em>accepted</em> scientific names (in <code>input_taxa</code>).</li>
+</ol>
+<ul>
+<li><code>taxon_id</code>, <code>scientific_name</code> and the higher classification is already provided</li>
+<li>Map <code>taxonomic_status</code> (= <code>accepted</code>), <code>accepted_name_usage</code> (= <code>scientific_name</code>) and <code>accepted_name_usage_id</code> (= <code>taxon_id</code>)</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Generate <code>synonyms</code> which contains all terms for the <em>synonyms</em> (in <code>input_synonyms</code>).</li>
+</ol>
+<ul>
+<li><code>scientific_name</code> is already provided</li>
+<li>Add higher classification <code>class</code>, <code>order</code>, <code>family</code> and <code>genus</code> by joining with <code>input_taxa</code></li>
+<li>Generate <code>taxon_id</code></li>
+<li>Map <code>taxonomic_status</code> (= <code>homotypicSynonym</code> or <code>heterotypicSynoym</code>), <code>accepted_name_usage</code> (= <code>synonym_of</code>) and <code>accepted_name_usage_id</code> (= <code>taxon_id</code> from <code>taxon</code>)</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Join <code>synonyms</code> with <code>accepted_taxa</code> using the dplyr funtion <code>bind_rows()</code></li>
+</ol>
+<div id="generate-accepted_taxa" class="section level3">
+<h3><span class="header-section-number">4.1.1</span> Generate accepted_taxa</h3>
+<p>Generate <code>accepted_taxa</code> by extracting all taxonomic information from <code>input_taxa</code>:</p>
+<pre class="r"><code>accepted_taxa &lt;- input_taxa %&gt;% select(taxon_id, scientific_name, class, order, family, genus, taxonomy)</code></pre>
+<p>Map <code>taxonomic_status</code> which is <code>accepted</code>:</p>
+<pre class="r"><code>accepted_taxa %&lt;&gt;% mutate(taxonomic_status = &quot;accepted&quot;)</code></pre>
+<p>Map <code>accepted_name_usage</code> and <code>accepted_name_usage_id</code>:</p>
+<pre class="r"><code>accepted_taxa &lt;-
+  accepted_taxa %&gt;% 
+    mutate(accepted_name_usage = scientific_name) %&gt;% 
+    mutate(accepted_name_usage_id = taxon_id)</code></pre>
+<p>Order terms to enable future join with <code>synonyms</code>:</p>
+<pre class="r"><code>accepted_taxa %&lt;&gt;% select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxonomy) </code></pre>
+</div>
+<div id="generate-synonyms" class="section level3">
+<h3><span class="header-section-number">4.1.2</span> Generate synonyms</h3>
+<p>Join <code>synonyms</code> with <code>accepted_taxa</code> to extract higher classification:</p>
+<pre class="r"><code>synonyms &lt;- 
+  input_synonyms %&gt;% 
+    left_join(
+      select(accepted_taxa, scientific_name, taxon_id, class, order, family, genus),
+      by = c(&quot;synonym_of&quot; = &quot;scientific_name&quot;))</code></pre>
+<p>Rename <code>taxon_id</code> from <code>accepted_taxa</code> to avoid confusion with the future mapping of <code>taxon_id</code> from <code>synonyms</code>:</p>
+<pre class="r"><code>synonyms %&lt;&gt;% rename(&quot;taxon_id_accepted&quot; = &quot;taxon_id&quot;)</code></pre>
+<p>Map <code>taxon_id</code> for synonyms:</p>
+<pre class="r"><code>synonyms %&lt;&gt;% 
+  mutate(taxon_id = paste(&quot;alien-mollusca-checklist&quot;, 
+                          &quot;taxon&quot;,
+                          vdigest(scientific_name, algo = &quot;md5&quot;), 
+                          sep = &quot;:&quot;))</code></pre>
+<p>One scientific name is duplicated in <code>synonyms</code>:</p>
+<pre class="r"><code>synonyms %&gt;% 
+  slice(which(duplicated(synonyms$scientific_name))) %&gt;% 
+  select(scientific_name)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["scientific_name"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"Helix balteata Pollonera, 1892"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>This is because <code>Helix balteata Pollonera, 1892</code> is both a synonym of <code>Cernuella virgata (Da Costa, 1778)</code> and <code>Cernuella cisalpina (Rossmässler, 1837)</code>. We need to manually adjust the <code>taxonID</code> for these records:</p>
+<pre class="r"><code>synonyms %&lt;&gt;% mutate(taxon_id = case_when(
+  scientific_name == &quot;Helix balteata Pollonera, 1892&quot; &amp; synonym_of == &quot;Cernuella virgata (Da Costa, 1778)&quot; ~ paste(taxon_id, &quot;1&quot;, sep = &quot;:&quot;),
+  scientific_name == &quot;Helix balteata Pollonera, 1892&quot; &amp; synonym_of == &quot;Cernuella cisalpina (Rossmässler, 1837)&quot; ~ paste(taxon_id, &quot;2&quot;, sep = &quot;:&quot;),
+  TRUE ~ taxon_id))</code></pre>
+<p>Check whether taxonID’s are still duplicated:</p>
+<pre class="r"><code>synonyms %&gt;% 
+  slice(which(duplicated(synonyms$taxon_id))) %&gt;% 
+  select(scientific_name)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["scientific_name"],"name":[1],"type":["chr"],"align":["left"]}],"data":[],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Map <code>taxonomic_status</code>.</p>
+<pre class="r"><code>synonyms %&lt;&gt;% mutate(taxonomic_status = case_when(
+  scientific_name == &quot;Helix balteata Pollonera, 1892&quot; ~ &quot;proParteSynonym&quot;,
+  remarks == &quot;original name&quot; ~ &quot;homotypicSynonym&quot;,
+  TRUE ~ &quot;heterotypicSynonym&quot;))</code></pre>
+<p>Map <code>accepted_name_usage</code> and <code>accepted_name_usage_id</code>. This information is provided in <code>synonym_of</code> and <code>taxon_id_accepted</code> respectively. We thus only need to rename these columns:</p>
+<pre class="r"><code>synonyms &lt;- 
+  synonyms %&gt;% 
+    rename(&quot;accepted_name_usage&quot; = &quot;synonym_of&quot;) %&gt;% 
+    rename(&quot;accepted_name_usage_id&quot; = &quot;taxon_id_accepted&quot;)</code></pre>
+<p>Add <code>taxonomy</code> which is empty for most <code>synonyms</code>, except for <code>Ferussacia folliculus Schröter, 1784</code> and <code>Ferussacia follicula Schröter, 1784</code>:</p>
+<pre class="r"><code>synonyms %&lt;&gt;% mutate(taxonomy = case_when(
+  scientific_name == &quot;Ferussacia folliculus Schröter, 1784&quot; | 
+    scientific_name == &quot;Ferussacia follicula Schröter, 1784&quot; ~ remarks,
+  TRUE ~ &quot;&quot;))</code></pre>
+<p>Rearrange columns to enable future join with <code>accepted_taxa</code>:</p>
+<pre class="r"><code>synonyms &lt;- synonyms %&gt;% 
+  select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxonomy) </code></pre>
+<p>Merge both datasets together in <code>taxon</code>:</p>
+<pre class="r"><code>taxon &lt;- accepted_taxa %&lt;&gt;% bind_rows(synonyms)</code></pre>
+</div>
+</div>
+<div id="term-mapping" class="section level2">
+<h2><span class="header-section-number">4.2</span> Term mapping</h2>
+<p>Map the data to <a href="http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml">Darwin Core Taxon</a>.</p>
+<p>Start with record-level terms which contain metadata about the dataset (which is generally the same for all records).</p>
+<div id="language" class="section level3">
+<h3><span class="header-section-number">4.2.1</span> language</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_language = &quot;en&quot;)</code></pre>
+</div>
+<div id="license" class="section level3">
+<h3><span class="header-section-number">4.2.2</span> license</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_license = &quot;http://creativecommons.org/publicdomain/zero/1.0/&quot;)</code></pre>
+</div>
+<div id="rightsholder" class="section level3">
+<h3><span class="header-section-number">4.2.3</span> rightsHolder</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_rightsHolder = &quot;Royal Belgian Institute of Natural Sciences&quot;)</code></pre>
+</div>
+<div id="datasetid" class="section level3">
+<h3><span class="header-section-number">4.2.4</span> datasetID</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_datasetID = &quot;&quot;)</code></pre>
+</div>
+<div id="institutioncode" class="section level3">
+<h3><span class="header-section-number">4.2.5</span> institutionCode</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_institutionCode = &quot;RBINS&quot;)</code></pre>
+</div>
+<div id="datasetname" class="section level3">
+<h3><span class="header-section-number">4.2.6</span> datasetName</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_datasetName = &quot;Registry of introduced terrestrial molluscs in Belgium&quot;)</code></pre>
+<p>The following terms contain information about the taxon:</p>
+</div>
+<div id="taxonid" class="section level3">
+<h3><span class="header-section-number">4.2.7</span> taxonID</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_taxonID = taxon_id) </code></pre>
+</div>
+<div id="acceptednameusageid" class="section level3">
+<h3><span class="header-section-number">4.2.8</span> acceptedNameUsageID</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_acceptedNameUsageID = accepted_name_usage_id) </code></pre>
+</div>
+<div id="scientificname" class="section level3">
+<h3><span class="header-section-number">4.2.9</span> scientificName</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_scientificName = scientific_name)</code></pre>
+</div>
+<div id="acceptednameusage" class="section level3">
+<h3><span class="header-section-number">4.2.10</span> acceptedNameUsage</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_acceptedNameUsage = accepted_name_usage) </code></pre>
+</div>
+<div id="kingdom" class="section level3">
+<h3><span class="header-section-number">4.2.11</span> kingdom</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_kingdom = &quot;Animalia&quot;)</code></pre>
+</div>
+<div id="phylum" class="section level3">
+<h3><span class="header-section-number">4.2.12</span> phylum</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_phylum = &quot;Mollusca&quot;) </code></pre>
+</div>
+<div id="class" class="section level3">
+<h3><span class="header-section-number">4.2.13</span> class</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_class = class)</code></pre>
+</div>
+<div id="order" class="section level3">
+<h3><span class="header-section-number">4.2.14</span> order</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_order = order) </code></pre>
+</div>
+<div id="family" class="section level3">
+<h3><span class="header-section-number">4.2.15</span> family</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_family = family) </code></pre>
+</div>
+<div id="genus" class="section level3">
+<h3><span class="header-section-number">4.2.16</span> genus</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_genus = genus)</code></pre>
+</div>
+<div id="taxonrank" class="section level3">
+<h3><span class="header-section-number">4.2.17</span> taxonRank</h3>
+<p>We can exxtract the taxon rank information from GBIF using the <code>rgbif</code> package.</p>
+<pre class="r"><code>taxon_rank &lt;- parsenames(taxon$dwc_scientificName)</code></pre>
+<p>Remove one 1 for the duplicated scientific name <code>Helix balteata Pollonera, 1892</code>:</p>
+<pre class="r"><code>taxon_rank %&lt;&gt;% distinct(scientificname, rankmarker, .keep_all = FALSE)</code></pre>
+<p>Add information to <code>taxon</code>:</p>
+<pre class="r"><code>taxon %&lt;&gt;% 
+  left_join(
+    select(taxon_rank, scientificname, rankmarker),
+    by = c(&quot;dwc_scientificName&quot; = &quot;scientificname&quot;))</code></pre>
+<p>Inspect values for <code>rankmarker</code>:</p>
+<pre class="r"><code>taxon %&gt;% 
+  group_by(rankmarker) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["rankmarker"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"f.","2":"9"},{"1":"infrasp.","2":"4"},{"1":"sp.","2":"250"},{"1":"var.","2":"28"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Recode values for <code>rankmarker</code> in <code>dwc_taxonRank</code></p>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_taxonRank = recode(rankmarker,
+  &quot;f.&quot; = &quot;forma&quot;,
+  &quot;infrasp.&quot; = &quot;subspecies&quot;,
+  &quot;sp.&quot; = &quot;species&quot;,
+  &quot;var.&quot; = &quot;variety&quot;))</code></pre>
+</div>
+<div id="nomenclaturalcode" class="section level3">
+<h3><span class="header-section-number">4.2.18</span> nomenclaturalCode</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_nomenclaturalCode = &quot;ICZN&quot;)</code></pre>
+</div>
+<div id="taxonomicstatus" class="section level3">
+<h3><span class="header-section-number">4.2.19</span> taxonomicStatus</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_taxonomicStatus = taxonomic_status) </code></pre>
+</div>
+<div id="taxonremarks" class="section level3">
+<h3><span class="header-section-number">4.2.20</span> taxonRemarks</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(dwc_taxonRemarks = taxonomy) </code></pre>
+</div>
+</div>
+<div id="post-processing" class="section level2">
+<h2><span class="header-section-number">4.3</span> Post-processing</h2>
+<p>Only keep the Darwin Core columns:</p>
+<pre class="r"><code>taxon %&lt;&gt;% select(starts_with(&quot;dwc_&quot;))</code></pre>
+<p>Drop the <code>dwc_</code> prefix:</p>
+<pre class="r"><code>colnames(taxon) &lt;- str_remove(colnames(taxon), &quot;dwc_&quot;)</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>taxon %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["language"],"name":[1],"type":["chr"],"align":["left"]},{"label":["license"],"name":[2],"type":["chr"],"align":["left"]},{"label":["rightsHolder"],"name":[3],"type":["chr"],"align":["left"]},{"label":["datasetID"],"name":[4],"type":["chr"],"align":["left"]},{"label":["institutionCode"],"name":[5],"type":["chr"],"align":["left"]},{"label":["datasetName"],"name":[6],"type":["chr"],"align":["left"]},{"label":["taxonID"],"name":[7],"type":["chr"],"align":["left"]},{"label":["acceptedNameUsageID"],"name":[8],"type":["chr"],"align":["left"]},{"label":["scientificName"],"name":[9],"type":["chr"],"align":["left"]},{"label":["acceptedNameUsage"],"name":[10],"type":["chr"],"align":["left"]},{"label":["kingdom"],"name":[11],"type":["chr"],"align":["left"]},{"label":["phylum"],"name":[12],"type":["chr"],"align":["left"]},{"label":["class"],"name":[13],"type":["chr"],"align":["left"]},{"label":["order"],"name":[14],"type":["chr"],"align":["left"]},{"label":["family"],"name":[15],"type":["chr"],"align":["left"]},{"label":["genus"],"name":[16],"type":["chr"],"align":["left"]},{"label":["taxonRank"],"name":[17],"type":["chr"],"align":["left"]},{"label":["nomenclaturalCode"],"name":[18],"type":["chr"],"align":["left"]},{"label":["taxonomicStatus"],"name":[19],"type":["chr"],"align":["left"]},{"label":["taxonRemarks"],"name":[20],"type":["chr"],"align":["left"]}],"data":[{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"Royal Belgian Institute of Natural Sciences","4":"","5":"RBINS","6":"Registry of introduced terrestrial molluscs in Belgium","7":"alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f","8":"alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f","9":"Allopeas clavulinum (Potiez & Michaud, 1835)","10":"Allopeas clavulinum (Potiez & Michaud, 1835)","11":"Animalia","12":"Mollusca","13":"Gastropoda Cuvier, 1795","14":"Stylommatophora A. Schmidt, 1855","15":"Subulinidae P. Fischer & Crosse, 1877","16":"Allopeas H. B. Baker, 1935","17":"species","18":"ICZN","19":"accepted","20":"Well-defined species. For the correct authorship of the name Allopeas clavulinum (Potiez & Michaud, 1835) see Bank & Menkhorst (2008)."},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"Royal Belgian Institute of Natural Sciences","4":"","5":"RBINS","6":"Registry of introduced terrestrial molluscs in Belgium","7":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","8":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","9":"Ambigolimax valentianus (A. Férussac, 1822)","10":"Ambigolimax valentianus (A. Férussac, 1822)","11":"Animalia","12":"Mollusca","13":"Gastropoda Cuvier, 1795","14":"Stylommatophora A. Schmidt, 1855","15":"Limacidae Lamarck, 1801","16":"Ambigolimax Pollonera, 1887","17":"species","18":"ICZN","19":"accepted","20":"Well-defined species."},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"Royal Belgian Institute of Natural Sciences","4":"","5":"RBINS","6":"Registry of introduced terrestrial molluscs in Belgium","7":"alien-mollusca-checklist:taxon:a4f4c57a54f834761b99b164aeb118b8","8":"alien-mollusca-checklist:taxon:a4f4c57a54f834761b99b164aeb118b8","9":"Arion vulgaris Moquin-Tandon, 1855","10":"Arion vulgaris Moquin-Tandon, 1855","11":"Animalia","12":"Mollusca","13":"Gastropoda Cuvier, 1795","14":"Stylommatophora A. Schmidt, 1855","15":"Arionidae Gray, 1840","16":"Arion A. Férussac, 1819","17":"species","18":"ICZN","19":"accepted","20":"The scientific name of this species is not yet firmly established. Formerly the species was often referred to as Arion lusitanicus Mabille, 1868, until it appeared that Mabille's taxon from Portugal is another species. Yet, many authors continued to use the name Arion lusitanicus for the invasive species using the authorship “auctorum, non Mabille, 1868”. Alternatively, the name Arion vulgaris Moquin-Tandon, 1855 has been proposed for the invasive species. The case is currently presented to the ICZN (Balashov 2018)."},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"Royal Belgian Institute of Natural Sciences","4":"","5":"RBINS","6":"Registry of introduced terrestrial molluscs in Belgium","7":"alien-mollusca-checklist:taxon:d35bb708ec0c0b005948aff00d416a30","8":"alien-mollusca-checklist:taxon:d35bb708ec0c0b005948aff00d416a30","9":"Boettgerilla pallens Simroth, 1912","10":"Boettgerilla pallens Simroth, 1912","11":"Animalia","12":"Mollusca","13":"Gastropoda Cuvier, 1795","14":"Stylommatophora A. Schmidt, 1855","15":"Boettgerillidae Wiktor & I.M. Likharev, 1979","16":"Boettgerilla Simroth, 1910","17":"species","18":"ICZN","19":"accepted","20":"Well-defined species"},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"Royal Belgian Institute of Natural Sciences","4":"","5":"RBINS","6":"Registry of introduced terrestrial molluscs in Belgium","7":"alien-mollusca-checklist:taxon:2adf2a5200ff7ef289de75605a0ccdf1","8":"alien-mollusca-checklist:taxon:2adf2a5200ff7ef289de75605a0ccdf1","9":"Candidula intersecta (Poiret, 1801)","10":"Candidula intersecta (Poiret, 1801)","11":"Animalia","12":"Mollusca","13":"Gastropoda Cuvier, 1795","14":"Stylommatophora A. Schmidt, 1855","15":"Hygromiidae Tryon, 1866","16":"Candidula Kobelt, 1871","17":"species","18":"ICZN","19":"accepted","20":"Well-defined species."},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"Royal Belgian Institute of Natural Sciences","4":"","5":"RBINS","6":"Registry of introduced terrestrial molluscs in Belgium","7":"alien-mollusca-checklist:taxon:2f422cf7ad1c9cb089045dabca55c28c","8":"alien-mollusca-checklist:taxon:2f422cf7ad1c9cb089045dabca55c28c","9":"Cernuella aginnica (Locard, 1882)","10":"Cernuella aginnica (Locard, 1882)","11":"Animalia","12":"Mollusca","13":"Gastropoda Cuvier, 1795","14":"Stylommatophora A. Schmidt, 1855","15":"Geomitridae C.R. Boettger, 1909","16":"Cernuella Schlüter, 1838","17":"species","18":"ICZN","19":"accepted","20":"Well-defined species."}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write_delim(taxon, here(&quot;data&quot;, &quot;processed&quot;, &quot;taxon.tsv&quot;), delim = &quot;\t&quot;, na = &quot;&quot;)</code></pre>
+</div>
+</div>
+<div id="vernacular-names-extension" class="section level1">
+<h1><span class="header-section-number">5</span> Vernacular names extension</h1>
+<div id="term-mapping-1" class="section level2">
+<h2><span class="header-section-number">5.1</span> Term mapping</h2>
+<p>Map the data to <a href="http://rs.gbif.org/extension/gbif/1.0/vernacularname.xml">Vernacular Names</a>.</p>
+<div id="taxonid-1" class="section level3">
+<h3><span class="header-section-number">5.1.1</span> taxonID</h3>
+<p>Merge with <code>taxon_id</code>:</p>
+<pre class="r"><code>input_vernacular_names %&lt;&gt;% left_join(
+  select(input_taxa, scientific_name, taxon_id), 
+  by = &quot;scientific_name&quot;)</code></pre>
+<p>Rename to <code>dwc_taxonID</code>:</p>
+<pre class="r"><code>input_vernacular_names %&lt;&gt;% rename(&quot;dwc_taxonID&quot; = &quot;taxon_id&quot;) </code></pre>
+</div>
+<div id="vernacularname" class="section level3">
+<h3><span class="header-section-number">5.1.2</span> vernacularName</h3>
+<pre class="r"><code>input_vernacular_names %&lt;&gt;% mutate(dwc_vernacularName = vernacular_name)</code></pre>
+</div>
+<div id="language-1" class="section level3">
+<h3><span class="header-section-number">5.1.3</span> language</h3>
+<pre class="r"><code>input_vernacular_names %&gt;%
+  group_by(language) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["language"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"dutch","2":"21"},{"1":"english","2":"37"},{"1":"french","2":"33"},{"1":"german","2":"29"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>This column currently contains the original column name, which we will recode to the ISO 639-1 language code:</p>
+<pre class="r"><code>input_vernacular_names %&lt;&gt;% mutate(dwc_language = recode(language,
+ &quot;dutch&quot; = &quot;nl&quot;,
+ &quot;english&quot; = &quot;en&quot;,
+ &quot;french&quot; = &quot;fr&quot;,
+ &quot;german&quot; = &quot;de&quot;))</code></pre>
+</div>
+</div>
+<div id="post-processing-1" class="section level2">
+<h2><span class="header-section-number">5.2</span> Post-processing</h2>
+<p>Remove the original columns:</p>
+<pre class="r"><code>input_vernacular_names %&lt;&gt;% select(
+  starts_with(&quot;dwc&quot;))</code></pre>
+<p>Drop the <code>dwc_</code> prefix:</p>
+<pre class="r"><code>colnames(input_vernacular_names) &lt;- str_remove(colnames(input_vernacular_names), &quot;dwc_&quot;)</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>input_vernacular_names %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["taxonID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["vernacularName"],"name":[2],"type":["chr"],"align":["left"]},{"label":["language"],"name":[3],"type":["chr"],"align":["left"]}],"data":[{"1":"alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f","2":"Spike awlsnail","3":"en"},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"Spaanse aardslak","3":"nl"},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"Limace d'Espagne","3":"fr"},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"Iberian threeband slug","3":"en"},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"greenhouse slug","3":"en"},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"threeband garden slug","3":"en"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write_delim(input_vernacular_names, here(&quot;data&quot;, &quot;processed&quot;, &quot;vernacularnames.tsv&quot;), delim = &quot;\t&quot;, na = &quot;&quot;)</code></pre>
+</div>
+</div>
+<div id="distribution-extension" class="section level1">
+<h1><span class="header-section-number">6</span> Distribution extension:</h1>
+<p>Create separate dataframe:</p>
+<pre class="r"><code>distribution &lt;- input_taxa</code></pre>
+<p>Preview:</p>
+<pre class="r"><code>distribution %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["scientific_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["taxonomy"],"name":[2],"type":["chr"],"align":["left"]},{"label":["class"],"name":[3],"type":["chr"],"align":["left"]},{"label":["order"],"name":[4],"type":["chr"],"align":["left"]},{"label":["family"],"name":[5],"type":["chr"],"align":["left"]},{"label":["genus"],"name":[6],"type":["chr"],"align":["left"]},{"label":["first_observation_text"],"name":[7],"type":["chr"],"align":["left"]},{"label":["distribution_belgium_text"],"name":[8],"type":["chr"],"align":["left"]},{"label":["first_observation"],"name":[9],"type":["chr"],"align":["left"]},{"label":["last_observation"],"name":[10],"type":["chr"],"align":["left"]},{"label":["occurrence_status"],"name":[11],"type":["chr"],"align":["left"]},{"label":["source_distribution"],"name":[12],"type":["chr"],"align":["left"]},{"label":["native_range_text"],"name":[13],"type":["chr"],"align":["left"]},{"label":["introduction_pathway_text"],"name":[14],"type":["chr"],"align":["left"]},{"label":["degree_of_establishment_text"],"name":[15],"type":["chr"],"align":["left"]},{"label":["realm"],"name":[16],"type":["chr"],"align":["left"]},{"label":["native_range"],"name":[17],"type":["chr"],"align":["left"]},{"label":["introduction_pathway"],"name":[18],"type":["chr"],"align":["left"]},{"label":["degree_of_establishment"],"name":[19],"type":["chr"],"align":["left"]},{"label":["source_description"],"name":[20],"type":["chr"],"align":["left"]},{"label":["taxon_id"],"name":[21],"type":["chr"],"align":["left"]}],"data":[{"1":"Allopeas clavulinum (Potiez & Michaud, 1835)","2":"Well-defined species. For the correct authorship of the name Allopeas clavulinum (Potiez & Michaud, 1835) see Bank & Menkhorst (2008).","3":"Gastropoda Cuvier, 1795","4":"Stylommatophora A. Schmidt, 1855","5":"Subulinidae P. Fischer & Crosse, 1877","6":"Allopeas H. B. Baker, 1935","7":"The species was for the first time reported in Belgium in 2003 in the “Victoriakas” of the botanical garden of the University of Gent, where 16 empty shells and 8 living specimens were collected (Keppens & Dhondt 2007).","8":"Only known from the first record at the botanical garden of the University of Gent. No records in Waarnemingen.be (consulted on 4 February 2019). Probably more widespread in other botanical gardens and greenhouses.","9":"2003","10":"NA","11":"present","12":"Keppens & Dhondt 2007","13":"eastern Africa","14":"Probably introduced unintentionally with foreign plant materials","15":"The extent by which the species is established in Belgian greenhouses and nurseries needs to be investigated. Category B2.","16":"Terrestrial","17":"eastern Africa","18":"Contaminant: Contaminant on plants | Contaminant: Transportation of habitat material","19":"B2","20":"NA","21":"alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f"},{"1":"Ambigolimax valentianus (A. Férussac, 1822)","2":"Well-defined species.","3":"Gastropoda Cuvier, 1795","4":"Stylommatophora A. Schmidt, 1855","5":"Limacidae Lamarck, 1801","6":"Ambigolimax Pollonera, 1887","7":"The species was first recorded in Belgium in 1946 in a greenhouse at Brugge under the name Lehmannia marginata (Van Goethem 1976). No other records were reported until the species was rediscovered at Bredene (“Spuikom” near Oostende) in 1973 (Van Goethem 1976).","8":"Common throughout the country (Waarnemingen.be), but few well-documented published records (De Wilde et al. 1986).","9":"1946","10":"NA","11":"present","12":"Van Goethem 1976 | De Wilde et al. 1986 | Kappes 2019 in press","13":"Iberian Peninsula","14":"Probably introduced unintentionally with foreign plant material.","15":"Fully invasive species; category E.","16":"Terrestrial","17":"Iberian Peninsula","18":"Contaminant: Contaminant on plants | Contaminant: Transportation of habitat material | Unaided","19":"E","20":"NA","21":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e"},{"1":"Arion vulgaris Moquin-Tandon, 1855","2":"The scientific name of this species is not yet firmly established. Formerly the species was often referred to as Arion lusitanicus Mabille, 1868, until it appeared that Mabille's taxon from Portugal is another species. Yet, many authors continued to use the name Arion lusitanicus for the invasive species using the authorship “auctorum, non Mabille, 1868”. Alternatively, the name Arion vulgaris Moquin-Tandon, 1855 has been proposed for the invasive species. The case is currently presented to the ICZN (Balashov 2018).","3":"Gastropoda Cuvier, 1795","4":"Stylommatophora A. Schmidt, 1855","5":"Arionidae Gray, 1840","6":"Arion A. Férussac, 1819","7":"The species was first reported in Belgium by Moens (1981) who observed the species in a pasture in southern Belgium. Unfortunately, there are no precise locality data of this observation and the material was not kept. The first well-documented record of the species in Belgium involves two adult specimens collected on 6 June 1973 in a garden at La Hestre, province of Hainaut (UTM ER89), close to the french border.","8":"Risch & Backeljau (1989) checked the identifications of “Arion rufus” in the collections of the Royal Belgian Institute of Natural Sciences (Brussels) by dissection of the genital apparatus and found that several samples actually involved Arion vulgaris. They provided a first distribution map showing that the species was mainly distributed in the southern part of Belgium up to Brussels, suggesting that the species invaded the country from the south, with probably human introductions around Brussels. Since then, it appears that the species has further expanded northward, so that it now occurs in suitable habitats all over the country (Van Goethem & Backeljau 2002). In fact it become far more common than the Arion rufus. Given that the species is often found in highly anthropogenic habitats, its spread is probably strongly mediated by human activities.","9":"1981","10":"NA","11":"present","12":"Moens 1981 | Risch & Backeljau 1989 | Van Goethem & Backeljau 2002","13":"Unclear. Formerly believed to be native in SW Europe and the Iberian Peninsula. Yet, the Arion lusitanicus Mabille, 1868 from Portugal is a different, locally endemic species. Moreover, there still is discussion as to whether or not the species is truly invading central Europe, for Pfenninger et al. (2014) have suggested that the species is native in central Europe and hence that it is not an alien invader there. Yet, Zemanova et al. (2016) questioned this suggestion and maintained that the species is invading central Europe.\\nFor Belgium there is little doubt that Arion vulgaris is an alien invader, since the extensive collections of Arion rufus in the RBINS that were made during surveys in the 20th century (going back to 1917) show that Arion vulgaris only starts to pop up among samples collected after 1970, and becomes more and more common towards the end of the 20th century.","14":"Probably introduced both by natural dispersal and spreading by human activities, including transport of plants, construction materials, tourism (e.g. camping equipment), etc.","15":"Fully invasive species. The species is considered to be one of the 100 most invasive species in Europe (DAISIE 2009); category E.","16":"Terrestrial","17":"unclear","18":"Contaminant: Contaminant on plants | Contaminant: Transportation of habitat material | Unaided","19":"E","20":"Pfenninger et al. 2014, Zemanova et al. 2016, DAISIE 2009","21":"alien-mollusca-checklist:taxon:a4f4c57a54f834761b99b164aeb118b8"},{"1":"Boettgerilla pallens Simroth, 1912","2":"Well-defined species","3":"Gastropoda Cuvier, 1795","4":"Stylommatophora A. Schmidt, 1855","5":"Boettgerillidae Wiktor & I.M. Likharev, 1979","6":"Boettgerilla Simroth, 1910","7":"According to Van Goethem (1972) the species was for the first time observed in Belgium in 1967 at Stavelot, where 2 specimens were collected by A.W. Janssen. Yet, no further data on this sample are available. Subsequently, the species was collected in Belgium by Meijer (1968) (Comblain-au-Pont, garden of hotel “Relais des Gourmets”, 12 May 1968), Schmid (1968) (Spa, near the waterfalls along road N32, 16 August 1968), Lambert (1971) (Valley of the Warche at Robertville, 11-12 July 1971), Lambert (1972) (Saint-Gérard, November 1971; Gosselies, March 1972; Loverval, May 1972; La Hestre, September-October 1972; Bertrix, September 1972; Chiny, 22 July 1972), and De Zuttere et al. (1972) (Castle of Reinhardstein at Robertville, 1972) , all involving records in the southern part of the country.","8":"Since its first observation in Belgium, the species has expanded its distribution up to the point that it currently occurs in suitable habitats throughout the whole country. This expansion has been documented in detail by De Wilde et al. (1983a, b, 1986a) and can be further followed at Waarnemingen.be since 2006.","9":"1967","10":"NA","11":"present","12":"Van Goethem 1972 | Meijer 1968 | Schmid 1968 | Lambert 1971 | Lambert 1972 | De Zuttere et al. 1972 | De Wilde et al. 1983a | De Wilde et al. 1983b | De Wilde 1986a","13":"Assumed to be native in the Caucasus region.","14":"Probably introduced unintentionally with foreign plant material.","15":"Fully invasive species; category E.","16":"Terrestrial","17":"Caucasus region","18":"Contaminant: Contaminant on plants | Contaminant: Transportation of habitat material | Unaided","19":"E","20":"NA","21":"alien-mollusca-checklist:taxon:d35bb708ec0c0b005948aff00d416a30"},{"1":"Candidula intersecta (Poiret, 1801)","2":"Well-defined species.","3":"Gastropoda Cuvier, 1795","4":"Stylommatophora A. Schmidt, 1855","5":"Hygromiidae Tryon, 1866","6":"Candidula Kobelt, 1871","7":"According to Adam (1943, 1947a, b) this species was not found in Belgium before 1922, but after that year it was commonly recorded in the dunes along the Belgian coast. Adam (1943, 1947b) also cited specimens collected by Dupuis (1924b) at Olloy-sur-Viroin and Vierves-sur-Viroin in southern Belgium, that were erroneously referred to as Helicella striata, but that in fact were undoubtedly C. intersecta.","8":"Currently the species seems to occur in suitable habitats all over the country, particularly in the dunes along the coast (Devriese et al. 2004), in the region around Antwerpen (e.g. Marquet 1985) and along the french border in central south Belgium (De Wilde et al. 1986b). There are many records in Waarnemingen.be and the species seems to expand further (Vercoutere et al. 2002; Devriese et al. 2004).","9":"1922","10":"NA","11":"present","12":"Adam 1943 | Adam 1947 | Adam 1947b | Dupuis 1924b | Marquet 1985 | Devriese et al. 2004 | De Wilde et al. 1986b | Vercoutere et al. 2002 | Devriese et al. 2004","13":"Probably southwestern France and the western part of the Iberian Peninsula.","14":"The species may have been unintentionally introduced in the coastal areas by military transports and activities during the World Wars (Adam 1947a; Vercoutere 2002). In the second half of the 20th century the species might also have been unintentionally introduced by attachment on tourist camping material. In the Antwerpen region its introduction is probably due to trade and construction activities.","15":"Fully invasive species; category E.","16":"Terrestrial","17":"southwestern France | Iberian Peninsula","18":"Stowaway: People and their luggage | Stowaway: Vehicles | Unaided","19":"E","20":"NA","21":"alien-mollusca-checklist:taxon:2adf2a5200ff7ef289de75605a0ccdf1"},{"1":"Cernuella aginnica (Locard, 1882)","2":"Well-defined species.","3":"Gastropoda Cuvier, 1795","4":"Stylommatophora A. Schmidt, 1855","5":"Geomitridae C.R. Boettger, 1909","6":"Cernuella Schlüter, 1838","7":"There is no exact date of introduction, but the species seems to have colonized the Belgian coastal dunes area shortly after the Second World War, probably starting from Oostende (Vercoutere et al. 2002; Devriese et al. 2004).","8":"Common in the dune areas along the entire Belgian coast.","9":"1944","10":"NA","11":"present","12":"Vercoutere et al. 2002 | Devriese et al. 2004","13":"southern France.","14":"Probably accidentally introduced, possibly by military activities.","15":"Fully invasive species; category E.","16":"Terrestrial","17":"southern France","18":"Stowaway: People and their luggage | Stowaway: Vehicles","19":"E","20":"NA","21":"alien-mollusca-checklist:taxon:2f422cf7ad1c9cb089045dabca55c28c"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<div id="term-mapping-2" class="section level2">
+<h2><span class="header-section-number">6.1</span> Term mapping</h2>
+<pre class="r"><code>distribution &lt;- input_taxa</code></pre>
+<p>Map the data to <a href="http://rs.gbif.org/extension/gbif/1.0/distribution.xml">Species Distribution</a>.</p>
+<div id="taxonid-2" class="section level3">
+<h3><span class="header-section-number">6.1.1</span> taxonID</h3>
+<p>Rename <code>taxon_id</code> to <code>dwc_taxonID</code>:</p>
+<pre class="r"><code>distribution %&lt;&gt;% rename(&quot;dwc_taxonID&quot; = &quot;taxon_id&quot;) </code></pre>
+</div>
+<div id="locationid" class="section level3">
+<h3><span class="header-section-number">6.1.2</span> locationID</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_locationID = &quot;ISO_3166-2:BE&quot;) </code></pre>
+</div>
+<div id="locality" class="section level3">
+<h3><span class="header-section-number">6.1.3</span> locality</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_locality = &quot;Belgium&quot;) </code></pre>
+</div>
+<div id="countrycode" class="section level3">
+<h3><span class="header-section-number">6.1.4</span> countryCode</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_countryCode = &quot;BE&quot;) </code></pre>
+</div>
+<div id="occurrencestatus" class="section level3">
+<h3><span class="header-section-number">6.1.5</span> occurrenceStatus</h3>
+<p><code>occurrenceStatus</code> should be <code>present</code>, <code>doubtful</code> or <code>absent</code>:</p>
+<pre class="r"><code>distribution %&gt;% 
+  group_by(occurrence_status) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["occurrence_status"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"absent","2":"1"},{"1":"doubtful","2":"7"},{"1":"present","2":"21"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_occurrenceStatus = occurrence_status) </code></pre>
+</div>
+<div id="establishmentmeans" class="section level3">
+<h3><span class="header-section-number">6.1.6</span> establishmentMeans</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_establishmentMeans = &quot;introduced&quot;) </code></pre>
+</div>
+<div id="eventdate" class="section level3">
+<h3><span class="header-section-number">6.1.7</span> eventDate</h3>
+<p>The dataset integrates two fields with date information: <code>first_observation</code>, which is <em>always</em> populated, and <code>last_observation</code>, which is <em>often empty</em>. From these columns, we create <code>eventDate</code> (ISO 8601 format: <code>yyyy</code> or <code>yyyy</code>/<code>yyyy</code>).</p>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_eventDate = case_when(
+  is.na(last_observation) ~ first_observation,
+  TRUE ~ paste(first_observation, last_observation, sep = &quot;/&quot;)))</code></pre>
+</div>
+<div id="source" class="section level3">
+<h3><span class="header-section-number">6.1.8</span> source</h3>
+<p>Information for source can be found in <code>source_distribution</code>.</p>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_source = source_distribution) </code></pre>
+</div>
+<div id="occurrenceremarks" class="section level3">
+<h3><span class="header-section-number">6.1.9</span> occurrenceRemarks</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(dwc_occurrenceRemarks = paste(
+  first_observation_text, distribution_belgium_text, sep = &quot; &quot;)) </code></pre>
+</div>
+</div>
+<div id="post-processing-2" class="section level2">
+<h2><span class="header-section-number">6.2</span> Post-processing</h2>
+<p>Only keep the Darwin Core columns:</p>
+<pre class="r"><code>distribution %&lt;&gt;% select(starts_with(&quot;dwc_&quot;))</code></pre>
+<p>Drop the <code>dwc_</code> prefix:</p>
+<pre class="r"><code>colnames(distribution) &lt;- str_remove(colnames(distribution), &quot;dwc_&quot;)</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>distribution %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["taxonID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["locationID"],"name":[2],"type":["chr"],"align":["left"]},{"label":["locality"],"name":[3],"type":["chr"],"align":["left"]},{"label":["countryCode"],"name":[4],"type":["chr"],"align":["left"]},{"label":["occurrenceStatus"],"name":[5],"type":["chr"],"align":["left"]},{"label":["establishmentMeans"],"name":[6],"type":["chr"],"align":["left"]},{"label":["eventDate"],"name":[7],"type":["chr"],"align":["left"]},{"label":["source"],"name":[8],"type":["chr"],"align":["left"]},{"label":["occurrenceRemarks"],"name":[9],"type":["chr"],"align":["left"]}],"data":[{"1":"alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f","2":"ISO_3166-2:BE","3":"Belgium","4":"BE","5":"present","6":"introduced","7":"2003","8":"Keppens & Dhondt 2007","9":"The species was for the first time reported in Belgium in 2003 in the “Victoriakas” of the botanical garden of the University of Gent, where 16 empty shells and 8 living specimens were collected (Keppens & Dhondt 2007). Only known from the first record at the botanical garden of the University of Gent. No records in Waarnemingen.be (consulted on 4 February 2019). Probably more widespread in other botanical gardens and greenhouses."},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"ISO_3166-2:BE","3":"Belgium","4":"BE","5":"present","6":"introduced","7":"1946","8":"Van Goethem 1976 | De Wilde et al. 1986 | Kappes 2019 in press","9":"The species was first recorded in Belgium in 1946 in a greenhouse at Brugge under the name Lehmannia marginata (Van Goethem 1976). No other records were reported until the species was rediscovered at Bredene (“Spuikom” near Oostende) in 1973 (Van Goethem 1976). Common throughout the country (Waarnemingen.be), but few well-documented published records (De Wilde et al. 1986)."},{"1":"alien-mollusca-checklist:taxon:a4f4c57a54f834761b99b164aeb118b8","2":"ISO_3166-2:BE","3":"Belgium","4":"BE","5":"present","6":"introduced","7":"1981","8":"Moens 1981 | Risch & Backeljau 1989 | Van Goethem & Backeljau 2002","9":"The species was first reported in Belgium by Moens (1981) who observed the species in a pasture in southern Belgium. Unfortunately, there are no precise locality data of this observation and the material was not kept. The first well-documented record of the species in Belgium involves two adult specimens collected on 6 June 1973 in a garden at La Hestre, province of Hainaut (UTM ER89), close to the french border. Risch & Backeljau (1989) checked the identifications of “Arion rufus” in the collections of the Royal Belgian Institute of Natural Sciences (Brussels) by dissection of the genital apparatus and found that several samples actually involved Arion vulgaris. They provided a first distribution map showing that the species was mainly distributed in the southern part of Belgium up to Brussels, suggesting that the species invaded the country from the south, with probably human introductions around Brussels. Since then, it appears that the species has further expanded northward, so that it now occurs in suitable habitats all over the country (Van Goethem & Backeljau 2002). In fact it become far more common than the Arion rufus. Given that the species is often found in highly anthropogenic habitats, its spread is probably strongly mediated by human activities."},{"1":"alien-mollusca-checklist:taxon:d35bb708ec0c0b005948aff00d416a30","2":"ISO_3166-2:BE","3":"Belgium","4":"BE","5":"present","6":"introduced","7":"1967","8":"Van Goethem 1972 | Meijer 1968 | Schmid 1968 | Lambert 1971 | Lambert 1972 | De Zuttere et al. 1972 | De Wilde et al. 1983a | De Wilde et al. 1983b | De Wilde 1986a","9":"According to Van Goethem (1972) the species was for the first time observed in Belgium in 1967 at Stavelot, where 2 specimens were collected by A.W. Janssen. Yet, no further data on this sample are available. Subsequently, the species was collected in Belgium by Meijer (1968) (Comblain-au-Pont, garden of hotel “Relais des Gourmets”, 12 May 1968), Schmid (1968) (Spa, near the waterfalls along road N32, 16 August 1968), Lambert (1971) (Valley of the Warche at Robertville, 11-12 July 1971), Lambert (1972) (Saint-Gérard, November 1971; Gosselies, March 1972; Loverval, May 1972; La Hestre, September-October 1972; Bertrix, September 1972; Chiny, 22 July 1972), and De Zuttere et al. (1972) (Castle of Reinhardstein at Robertville, 1972) , all involving records in the southern part of the country. Since its first observation in Belgium, the species has expanded its distribution up to the point that it currently occurs in suitable habitats throughout the whole country. This expansion has been documented in detail by De Wilde et al. (1983a, b, 1986a) and can be further followed at Waarnemingen.be since 2006."},{"1":"alien-mollusca-checklist:taxon:2adf2a5200ff7ef289de75605a0ccdf1","2":"ISO_3166-2:BE","3":"Belgium","4":"BE","5":"present","6":"introduced","7":"1922","8":"Adam 1943 | Adam 1947 | Adam 1947b | Dupuis 1924b | Marquet 1985 | Devriese et al. 2004 | De Wilde et al. 1986b | Vercoutere et al. 2002 | Devriese et al. 2004","9":"According to Adam (1943, 1947a, b) this species was not found in Belgium before 1922, but after that year it was commonly recorded in the dunes along the Belgian coast. Adam (1943, 1947b) also cited specimens collected by Dupuis (1924b) at Olloy-sur-Viroin and Vierves-sur-Viroin in southern Belgium, that were erroneously referred to as Helicella striata, but that in fact were undoubtedly C. intersecta. Currently the species seems to occur in suitable habitats all over the country, particularly in the dunes along the coast (Devriese et al. 2004), in the region around Antwerpen (e.g. Marquet 1985) and along the french border in central south Belgium (De Wilde et al. 1986b). There are many records in Waarnemingen.be and the species seems to expand further (Vercoutere et al. 2002; Devriese et al. 2004)."},{"1":"alien-mollusca-checklist:taxon:2f422cf7ad1c9cb089045dabca55c28c","2":"ISO_3166-2:BE","3":"Belgium","4":"BE","5":"present","6":"introduced","7":"1944","8":"Vercoutere et al. 2002 | Devriese et al. 2004","9":"There is no exact date of introduction, but the species seems to have colonized the Belgian coastal dunes area shortly after the Second World War, probably starting from Oostende (Vercoutere et al. 2002; Devriese et al. 2004). Common in the dune areas along the entire Belgian coast."}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write_delim(distribution, here(&quot;data&quot;, &quot;processed&quot;, &quot;distribution.tsv&quot;), delim = &quot;\t&quot;, na = &quot;&quot;)</code></pre>
+</div>
+</div>
+<div id="literature-reference-extension" class="section level1">
+<h1><span class="header-section-number">7</span> Literature reference extension</h1>
+<div id="taxonid-3" class="section level3">
+<h3><span class="header-section-number">7.0.1</span> taxonID</h3>
+<p>Merge with <code>input_taxa</code> to retrieve <code>taxon_id</code>:</p>
+<pre class="r"><code>input_references %&lt;&gt;% left_join(
+  select(input_taxa, scientific_name, taxon_id),
+  by = &quot;scientific_name&quot;)</code></pre>
+<p>Rename to <code>dwc_taxonID</code>:</p>
+<pre class="r"><code>input_references %&lt;&gt;% rename(&quot;dwc_taxonID&quot; = &quot;taxon_id&quot;) </code></pre>
+</div>
+<div id="identifier" class="section level3">
+<h3><span class="header-section-number">7.0.2</span> identifier</h3>
+<pre class="r"><code>input_references %&lt;&gt;% mutate(dwc_identifier = shortref)</code></pre>
+</div>
+<div id="bibliographiccitation" class="section level3">
+<h3><span class="header-section-number">7.0.3</span> bibliographicCitation</h3>
+<pre class="r"><code>input_references %&lt;&gt;% mutate(dwc_bibliographicCitation = reference) </code></pre>
+</div>
+<div id="post-processing-3" class="section level2">
+<h2><span class="header-section-number">7.1</span> Post-processing</h2>
+<p>Only keep the Darwin Core columns:</p>
+<pre class="r"><code>input_references %&lt;&gt;% select(starts_with(&quot;dwc_&quot;))</code></pre>
+<p>Drop the <code>dwc_</code> prefix:</p>
+<pre class="r"><code>colnames(input_references) &lt;- str_remove(colnames(input_references), &quot;dwc_&quot;)</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>input_references %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["taxonID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["identifier"],"name":[2],"type":["chr"],"align":["left"]},{"label":["bibliographicCitation"],"name":[3],"type":["chr"],"align":["left"]}],"data":[{"1":"alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f","2":"Bank & Menkhorst (2008)","3":"Bank, R.A. & Menkhorst, H.P.M.G. 2008. Notes on the nomenclature of some land- and freshwater molluscs of the Seychelles, with consequences for taxa from Africa, Madagascar, India, the Philippines, Jamaica, and Europe. – Basteria 72: 93-110."},{"1":"alien-mollusca-checklist:taxon:81d4efabef9ab3e384dfe016ee69d01f","2":"Keppens & Dhondt (2007)","3":"Keppens, M. & Dhondt, K. 2007. De malacofauna van de tropische Victoriakas van de plantentuin van de universiteit Gent (België). – Gloria Maris 46: 29-40."},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"De Wilde et al. (1986b)","3":"De Wilde, J.J., Marquet, R. & Van Goethem, J.L. 1986b. Voorlopige atlas van de landslakken van België – Atlas provisoire des gastéropodes terrestres de la Belgique. – Published by the Royal Belgian Institute of Natural Sciences, Brussels, 285 pp."},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"Kappes (2019) in press","3":"Kappes, H. 2019. Kenntnisstand zu der Etablierung von Ambigolimax valentianus (Férussac, 1822). - Mitteilungen der Deutschen Malakozoologischen Gesellschaft, in press"},{"1":"alien-mollusca-checklist:taxon:7ecbd23986aa59aefd50154ef9f4fd1e","2":"Van Goethem (1976)","3":"Van Goethem, J.L. 1976. Contribution à l'étude de Lehmannia valentiana (de Férussac, 1821) (Mollusca, Pulmonata, Limacidae). – Bulletin van het Koninklijk Belgisch Instituut voor Natuurwetenschappen, Biologie, 51(5): 1-14."},{"1":"alien-mollusca-checklist:taxon:a4f4c57a54f834761b99b164aeb118b8","2":"Balashov (2018)","3":"Balashov, I. 2018. Case 3685 – Arion vulgaris Moquin-Tandon, 1855 (Gastropoda, Stylommatophora, Arionidae): proposed validation of the specific name as available. – The Bulletin of Zoological Nomenclature 75: 12-15."}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write_delim(input_references, here(&quot;data&quot;, &quot;processed&quot;, &quot;references.tsv&quot;), delim = &quot;\t&quot;, na = &quot;&quot;)</code></pre>
+</div>
+<div id="description-extension" class="section level2">
+<h2><span class="header-section-number">7.2</span> Description extension</h2>
+<p>In the description extension we want to include several important characteristics (hereafter refered to as descriptors) about the species:</p>
+<ul>
+<li>Native range</li>
+<li>Pathway of introduction</li>
+<li>Degree of establishment</li>
+</ul>
+<p>A single taxon can have multiple descriptions of the same type (e.g. multiple native ranges), expressed as multiple rows in the description extension.</p>
+<p>For each descriptor, we create a separate dataframe to process the specific information. We always specify <em>which descriptor</em> we map (<code>type</code> column) and its <em>specific content</em> (<code>description</code> column). After the mapping of these Darwin Core terms <code>type</code> and <code>value</code>, we merge the dataframes to generate one single description extension. We then continue the mapping process by adding the other Darwin Core terms (which content is independent of the type of descriptor, such as <code>language</code>).</p>
+<div id="native-range" class="section level3">
+<h3><span class="header-section-number">7.2.1</span> Native range</h3>
+<p>Create separate dataframe:</p>
+<pre class="r"><code>native_range &lt;- input_taxa</code></pre>
+<p>Inspect data:</p>
+<pre class="r"><code>native_range %&gt;% 
+  group_by(native_range) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["native_range"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"Carpathians | southern Alps | southeastern Alps | northern Balkan","2":"1"},{"1":"Caucasus region","2":"1"},{"1":"circum-Mediterranean","2":"1"},{"1":"eastern Africa","2":"1"},{"1":"Iberian Peninsula","2":"1"},{"1":"Italy | coastal areas of the western Balkan","2":"1"},{"1":"New Zealand | Australia","2":"1"},{"1":"North America","2":"2"},{"1":"northern coastal areas of the western Mediterranean","2":"1"},{"1":"northern part of the Iberian Peninsula | southern France | Italian Peninsula | Sicily | western Balkan | Greece | Crete","2":"1"},{"1":"nortwestern Africa | circum western Mediterranean coastal areas","2":"1"},{"1":"southeastern Europe | central Europe | Balkan","2":"1"},{"1":"southeastern France | Italy | Slovenia | northwestern Croatia","2":"1"},{"1":"southern Europe | central Europe | southeastern Europe | central Turkey","2":"1"},{"1":"southern Europe | western Mediterranean","2":"1"},{"1":"southern France","2":"2"},{"1":"southern France | Spain | northwestern Italy | Corsica | Sardinia | Balearic Islands | Tunisia | Algeria | Morocco","2":"1"},{"1":"southern France | western Italy | central Italy","2":"1"},{"1":"southwestern France | Iberian Peninsula","2":"1"},{"1":"southwestern Germany | southeastern France | Switzerland | Austria | northern Italy | western Balkan","2":"1"},{"1":"tropical western Africa","2":"2"},{"1":"unclear","2":"2"},{"1":"western circum-Mediterranean","2":"1"},{"1":"western Mediterranean coastal areas | central Mediterranean coastal areas","2":"1"},{"1":"western Mediterranean region","2":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Separate by <code>|</code>:</p>
+<pre class="r"><code>native_range %&lt;&gt;% separate(native_range, 
+                          into = paste(&quot;native_range&quot;,c(1:9),sep=&quot;_&quot;),
+                          remove = FALSE,
+                          sep = &quot;(\\s\\|\\s)&quot;)</code></pre>
+<p>Gather data:</p>
+<pre class="r"><code>native_range %&lt;&gt;% gather(key = &quot;native_range&quot;,
+                         value = &quot;value&quot;,
+                         paste(&quot;native_range&quot;,c(1:9),sep=&quot;_&quot;),
+                         na.rm = TRUE)</code></pre>
+<p>Inspect data:</p>
+<pre class="r"><code>native_range %&gt;% 
+  group_by(value) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"Algeria","2":"1"},{"1":"Australia","2":"1"},{"1":"Austria","2":"1"},{"1":"Balearic Islands","2":"1"},{"1":"Balkan","2":"1"},{"1":"Carpathians","2":"1"},{"1":"Caucasus region","2":"1"},{"1":"central Europe","2":"2"},{"1":"central Italy","2":"1"},{"1":"central Mediterranean coastal areas","2":"1"},{"1":"central Turkey","2":"1"},{"1":"circum-Mediterranean","2":"1"},{"1":"circum western Mediterranean coastal areas","2":"1"},{"1":"coastal areas of the western Balkan","2":"1"},{"1":"Corsica","2":"1"},{"1":"Crete","2":"1"},{"1":"eastern Africa","2":"1"},{"1":"Greece","2":"1"},{"1":"Iberian Peninsula","2":"2"},{"1":"Italian Peninsula","2":"1"},{"1":"Italy","2":"2"},{"1":"Morocco","2":"1"},{"1":"New Zealand","2":"1"},{"1":"North America","2":"2"},{"1":"northern Balkan","2":"1"},{"1":"northern coastal areas of the western Mediterranean","2":"1"},{"1":"northern Italy","2":"1"},{"1":"northern part of the Iberian Peninsula","2":"1"},{"1":"northwestern Croatia","2":"1"},{"1":"northwestern Italy","2":"1"},{"1":"nortwestern Africa","2":"1"},{"1":"Sardinia","2":"1"},{"1":"Sicily","2":"1"},{"1":"Slovenia","2":"1"},{"1":"southeastern Alps","2":"1"},{"1":"southeastern Europe","2":"2"},{"1":"southeastern France","2":"2"},{"1":"southern Alps","2":"1"},{"1":"southern Europe","2":"2"},{"1":"southern France","2":"5"},{"1":"southwestern France","2":"1"},{"1":"southwestern Germany","2":"1"},{"1":"Spain","2":"1"},{"1":"Switzerland","2":"1"},{"1":"tropical western Africa","2":"2"},{"1":"Tunisia","2":"1"},{"1":"unclear","2":"2"},{"1":"western Balkan","2":"2"},{"1":"western circum-Mediterranean","2":"1"},{"1":"western Italy","2":"1"},{"1":"western Mediterranean","2":"1"},{"1":"western Mediterranean coastal areas","2":"1"},{"1":"western Mediterranean region","2":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Rename <code>value</code> to <code>description</code>:</p>
+<pre class="r"><code>native_range %&lt;&gt;% rename(&quot;description&quot; = &quot;value&quot;)</code></pre>
+<p>Create <code>type</code>:</p>
+<pre class="r"><code>native_range %&lt;&gt;% mutate(type = &quot;native range&quot;) </code></pre>
+<p>Remove <code>native_range</code>:</p>
+<pre class="r"><code>native_range %&lt;&gt;% select(-native_range) </code></pre>
+</div>
+<div id="pathways" class="section level3">
+<h3><span class="header-section-number">7.2.2</span> Pathways</h3>
+<p>Create separate dataframe:</p>
+<pre class="r"><code>pathways &lt;- input_taxa</code></pre>
+<p>Inspect data:</p>
+<pre class="r"><code>pathways %&gt;% 
+  group_by(introduction_pathway) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["introduction_pathway"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"NA","2":"5"},{"1":"Contaminant: Contaminant on plants","2":"1"},{"1":"Contaminant: Contaminant on plants | Contaminant: Transportation of habitat material","2":"8"},{"1":"Contaminant: Contaminant on plants | Contaminant: Transportation of habitat material | Unaided","2":"3"},{"1":"Contaminant: Contaminant on plants | Stowaway","2":"1"},{"1":"Release: Other intentional use | Unaided","2":"1"},{"1":"Stowaway","2":"1"},{"1":"Stowaway | Unaided | Contaminant: Contaminant on plants","2":"1"},{"1":"Stowaway: Container | Stowaway: Hitchhikers on ship | Escape : Pet | Escape: Research and ex-situ breeding","2":"1"},{"1":"Stowaway: People and their luggage | Stowaway: Vehicles","2":"4"},{"1":"Stowaway: People and their luggage | Stowaway: Vehicles | Release: Other intentional use | Unaided","2":"2"},{"1":"Stowaway: People and their luggage | Stowaway: Vehicles | Unaided","2":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Separate by <code>|</code>:</p>
+<pre class="r"><code>pathways %&lt;&gt;% separate(introduction_pathway, 
+                          into = paste(&quot;introduction_pathway&quot;,c(1:4),sep=&quot;_&quot;),
+                          sep = &quot;(\\s\\|\\s)&quot;,
+                          remove = FALSE)</code></pre>
+<p>Gather data:</p>
+<pre class="r"><code>pathways %&lt;&gt;% gather(key = &quot;key&quot;,
+                     value = &quot;value&quot;,
+                     paste(&quot;introduction_pathway&quot;,c(1:4),sep=&quot;_&quot;),
+                     na.rm = TRUE)</code></pre>
+<p>Inspect data:</p>
+<pre class="r"><code>pathways %&gt;% 
+  group_by(value) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"Contaminant: Contaminant on plants","2":"14"},{"1":"Contaminant: Transportation of habitat material","2":"11"},{"1":"Escape : Pet","2":"1"},{"1":"Escape: Research and ex-situ breeding","2":"1"},{"1":"Release: Other intentional use","2":"3"},{"1":"Stowaway","2":"3"},{"1":"Stowaway: Container","2":"1"},{"1":"Stowaway: Hitchhikers on ship","2":"1"},{"1":"Stowaway: People and their luggage","2":"7"},{"1":"Stowaway: Vehicles","2":"7"},{"1":"Unaided","2":"8"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Map to <a href="https://github.com/trias-project/vocab/blob/master/vocabulary/pathway/pathways.tsv">controlled vocabulary</a> for pathways, based on the <a href="https://www.cbd.int/doc/meetings/sbstta/sbstta-18/official/sbstta-18-09-add1-en.pdf">CBD standard</a> and developed for TrIAS:</p>
+<pre class="r"><code>pathways %&lt;&gt;% mutate(description = recode(value,
+  &quot;Contaminant: Contaminant on plants&quot; = &quot;contaminant_on_plants&quot;,
+  &quot;Contaminant: Transportation of habitat material&quot; = &quot;contaminant_habitat_material&quot;,
+  &quot;Escape : Pet&quot; = &quot;escape_pet&quot;,
+  &quot;Escape: Research and ex-situ breeding&quot; = &quot;escape_research&quot;,
+  &quot;Release: Other intentional use&quot; = &quot;release_other&quot;,
+  &quot;Stowaway&quot; = &quot;stowaway&quot;,
+  &quot;Stowaway: Container&quot; = &quot;stowaway_container&quot;,
+  &quot;Stowaway: Hitchhikers on ship&quot; = &quot;stowaway_ship&quot;,
+  &quot;Stowaway: People and their luggage&quot; = &quot;stowaway_people_luggage&quot;,
+  &quot;Stowaway: Vehicles&quot; = &quot;stowaway_vehicles&quot;,
+  &quot;Unaided&quot; = &quot;unaided&quot;)) </code></pre>
+<p>Add prefix <code>cbd_2014_pathway</code>:</p>
+<pre class="r"><code>pathways %&lt;&gt;% mutate(description = paste (&quot;cbd_2014_pathway&quot;, description, sep = &quot;:&quot;))</code></pre>
+<p>Inspect mapping:</p>
+<pre class="r"><code>pathways %&gt;% 
+  group_by(value, description) %&gt;% 
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]},{"label":["description"],"name":[2],"type":["chr"],"align":["left"]},{"label":["records"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"Contaminant: Contaminant on plants","2":"cbd_2014_pathway:contaminant_on_plants","3":"14"},{"1":"Contaminant: Transportation of habitat material","2":"cbd_2014_pathway:contaminant_habitat_material","3":"11"},{"1":"Escape : Pet","2":"cbd_2014_pathway:escape_pet","3":"1"},{"1":"Escape: Research and ex-situ breeding","2":"cbd_2014_pathway:escape_research","3":"1"},{"1":"Release: Other intentional use","2":"cbd_2014_pathway:release_other","3":"3"},{"1":"Stowaway","2":"cbd_2014_pathway:stowaway","3":"3"},{"1":"Stowaway: Container","2":"cbd_2014_pathway:stowaway_container","3":"1"},{"1":"Stowaway: Hitchhikers on ship","2":"cbd_2014_pathway:stowaway_ship","3":"1"},{"1":"Stowaway: People and their luggage","2":"cbd_2014_pathway:stowaway_people_luggage","3":"7"},{"1":"Stowaway: Vehicles","2":"cbd_2014_pathway:stowaway_vehicles","3":"7"},{"1":"Unaided","2":"cbd_2014_pathway:unaided","3":"8"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Map <code>type</code>:</p>
+<pre class="r"><code>pathways %&lt;&gt;% mutate(type = &quot;pathway&quot;)</code></pre>
+<p>Remove <code>key</code> and <code>value</code>:</p>
+<pre class="r"><code>pathways %&lt;&gt;% select(-key, -value) </code></pre>
+</div>
+<div id="degree-of-establishment" class="section level3">
+<h3><span class="header-section-number">7.2.3</span> Degree of establishment</h3>
+<p>Create separate dataframe:</p>
+<pre class="r"><code>degree_of_establishment &lt;- input_taxa</code></pre>
+<p>Inspect data:</p>
+<pre class="r"><code>degree_of_establishment %&gt;% 
+  group_by(degree_of_establishment) %&gt;% 
+  summarize(records = n()) </code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["degree_of_establishment"],"name":[1],"type":["chr"],"align":["left"]},{"label":["records"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"B2","2":"5"},{"1":"B3","2":"1"},{"1":"C0","2":"6"},{"1":"C0 - C3","2":"1"},{"1":"C1 - C3","2":"1"},{"1":"C3","2":"1"},{"1":"C3, D1, D2","2":"1"},{"1":"D2, E","2":"1"},{"1":"E","2":"12"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>We map the data to the <a href="http://doc.rero.ch/record/24725/files/bach_puf.pdf">Blackburn et al. 2011</a> proposed framework for biological invatsions. Each stage (A - E) represents a specific degree of establishment. When multiple stages are provided, we default to the most established of Blackburn’s categories, see <a href="https://github.com/trias-project/alien-mollusca-checklist/issues/10">issue 10</a>.</p>
+<pre class="r"><code>degree_of_establishment %&lt;&gt;% mutate(description = recode(degree_of_establishment,
+  &quot;C0 - C3&quot; = &quot;C3&quot;,
+  &quot;C1 - C3&quot; = &quot;C3&quot;,
+  &quot;C3, D1, D2&quot; = &quot;D2&quot;,
+  &quot;D2, E&quot; = &quot;E&quot;)) </code></pre>
+<p>Add prefix <code>blackburn_et_al_2011:</code> to refer to the framework:</p>
+<pre class="r"><code>degree_of_establishment %&lt;&gt;% mutate(description = paste (&quot;blackburn_et_al_2011&quot;, description, sep = &quot;:&quot;))</code></pre>
+<p>Inspect mapping:</p>
+<pre class="r"><code>degree_of_establishment %&gt;% 
+  group_by(degree_of_establishment, description) %&gt;% 
+  summarize(records = n()) </code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["degree_of_establishment"],"name":[1],"type":["chr"],"align":["left"]},{"label":["description"],"name":[2],"type":["chr"],"align":["left"]},{"label":["records"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"B2","2":"blackburn_et_al_2011:B2","3":"5"},{"1":"B3","2":"blackburn_et_al_2011:B3","3":"1"},{"1":"C0","2":"blackburn_et_al_2011:C0","3":"6"},{"1":"C0 - C3","2":"blackburn_et_al_2011:C3","3":"1"},{"1":"C1 - C3","2":"blackburn_et_al_2011:C3","3":"1"},{"1":"C3","2":"blackburn_et_al_2011:C3","3":"1"},{"1":"C3, D1, D2","2":"blackburn_et_al_2011:D2","3":"1"},{"1":"D2, E","2":"blackburn_et_al_2011:E","3":"1"},{"1":"E","2":"blackburn_et_al_2011:E","3":"12"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Map <code>type</code>:</p>
+<pre class="r"><code>degree_of_establishment %&lt;&gt;% mutate(type = &quot;degree of establishment&quot;) </code></pre>
+</div>
+</div>
+<div id="union-description" class="section level2">
+<h2><span class="header-section-number">7.3</span> Union description</h2>
+<p>Bind <code>native_range</code>, <code>pathways</code> and <code>degree_of_establishment</code> by rows:</p>
+<pre class="r"><code>description &lt;- bind_rows(native_range, pathways, degree_of_establishment)</code></pre>
+</div>
+<div id="map-terms" class="section level2">
+<h2><span class="header-section-number">7.4</span> Map terms</h2>
+<div id="taxonid-4" class="section level3">
+<h3><span class="header-section-number">7.4.1</span> taxonID</h3>
+<pre class="r"><code>description %&lt;&gt;% mutate(dwc_taxonID = taxon_id)</code></pre>
+</div>
+<div id="description" class="section level3">
+<h3><span class="header-section-number">7.4.2</span> description</h3>
+<pre class="r"><code>description %&lt;&gt;% mutate(dwc_description = description) </code></pre>
+</div>
+<div id="type" class="section level3">
+<h3><span class="header-section-number">7.4.3</span> type</h3>
+<pre class="r"><code>description %&lt;&gt;% mutate(dwc_type = type) </code></pre>
+</div>
+<div id="language-2" class="section level3">
+<h3><span class="header-section-number">7.4.4</span> language</h3>
+<pre class="r"><code>description %&lt;&gt;% mutate(dwc_language = &quot;en&quot;) </code></pre>
+</div>
+</div>
+<div id="post-processing-4" class="section level2">
+<h2><span class="header-section-number">7.5</span> Post-processing</h2>
+<p>Keep columns with <code>dwc_</code> prefix only:</p>
+<pre class="r"><code>description %&lt;&gt;% select(starts_with(&quot;dwc_&quot;))</code></pre>
+<p>Remove prefix <code>dwc_</code>:</p>
+<pre class="r"><code>colnames(description) &lt;- str_remove(colnames(description), &quot;dwc_&quot;)</code></pre>
+<p>Sort on <code>taxonID</code> to group description information per taxon:</p>
+<pre class="r"><code>description %&lt;&gt;% arrange(taxonID)</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>description %&gt;% head(10)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["taxonID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["description"],"name":[2],"type":["chr"],"align":["left"]},{"label":["type"],"name":[3],"type":["chr"],"align":["left"]},{"label":["language"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"alien-mollusca-checklist:taxon:02eac5f78d2af0f96a73471ee72461ec","2":"western Mediterranean coastal areas","3":"native range","4":"en"},{"1":"alien-mollusca-checklist:taxon:02eac5f78d2af0f96a73471ee72461ec","2":"central Mediterranean coastal areas","3":"native range","4":"en"},{"1":"alien-mollusca-checklist:taxon:02eac5f78d2af0f96a73471ee72461ec","2":"cbd_2014_pathway:stowaway_people_luggage","3":"pathway","4":"en"},{"1":"alien-mollusca-checklist:taxon:02eac5f78d2af0f96a73471ee72461ec","2":"cbd_2014_pathway:stowaway_vehicles","3":"pathway","4":"en"},{"1":"alien-mollusca-checklist:taxon:02eac5f78d2af0f96a73471ee72461ec","2":"cbd_2014_pathway:release_other","3":"pathway","4":"en"},{"1":"alien-mollusca-checklist:taxon:02eac5f78d2af0f96a73471ee72461ec","2":"cbd_2014_pathway:unaided","3":"pathway","4":"en"},{"1":"alien-mollusca-checklist:taxon:02eac5f78d2af0f96a73471ee72461ec","2":"blackburn_et_al_2011:E","3":"degree of establishment","4":"en"},{"1":"alien-mollusca-checklist:taxon:06528ea561737233003ecad5dab869a5","2":"nortwestern Africa","3":"native range","4":"en"},{"1":"alien-mollusca-checklist:taxon:06528ea561737233003ecad5dab869a5","2":"circum western Mediterranean coastal areas","3":"native range","4":"en"},{"1":"alien-mollusca-checklist:taxon:06528ea561737233003ecad5dab869a5","2":"cbd_2014_pathway:release_other","3":"pathway","4":"en"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write_delim(description, here(&quot;data&quot;,&quot;processed&quot;,&quot;description.tsv&quot;), delim = &quot;\t&quot;)</code></pre>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
