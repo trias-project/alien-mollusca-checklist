@@ -2,7 +2,7 @@
 
 ## Rationale
 
-This repository contains the functionality to standardize the [Registry of introduced terrestrial molluscs in Belgium](https://docs.google.com/spreadsheets/d/1hSXd6SZQUvI8uGbE_5-vmN8ZZz739D46HRt2aTFcb-s/edit#gid=770147834) to a [Darwin Core checklist](https://www.gbif.org/dataset-classes) that can be harvested by [GBIF](http://www.gbif.org). It was developed for the [TrIAS project](http://trias-project.be).
+This repository contains the functionality to standardize the [Registry of introduced terrestrial molluscs in Belgium](https://doi.org/10.5281/zenodo.3530326) to a [Darwin Core checklist](https://www.gbif.org/dataset-classes) that can be harvested by [GBIF](http://www.gbif.org). It was developed for the [TrIAS project](http://trias-project.be).
 
 ## Workflow
 
