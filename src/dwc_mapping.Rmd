@@ -526,7 +526,7 @@ input_vernacular_names %>% head()
 Save to CSV:
 
 ```{r}
-write_delim(input_vernacular_names, here("data", "processed", "vernacularnames.tsv"), delim = "\t", na = "")
+write_delim(input_vernacular_names, here("data", "processed", "vernacularname.tsv"), delim = "\t", na = "")
 ```
 
 # Species Profile extension:
@@ -1043,7 +1043,5 @@ description %>% head(10)
 Save to CSV:
 
 ```{r}
-write_delim(description, here("data","processed","description.tsv"), delim = "\t")
+write_delim(description, here("data", "processed", "description.tsv"), delim = "\t")
 ```
-
-
