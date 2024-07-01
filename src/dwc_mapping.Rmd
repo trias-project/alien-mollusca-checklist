@@ -34,7 +34,6 @@ library(here)           # To find files
 library(janitor)        # To clean input data
 library(digest)         # To generate hashes
 library(rgbif)          # To use GBIF services
-library(googlesheets)   # To import and read Google spreadsheets 
 ```
 
 # Read source data
@@ -49,19 +48,11 @@ col_types = cols(
 
 The original spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1hSXd6SZQUvI8uGbE_5-vmN8ZZz739D46HRt2aTFcb-s/edit#gid=0). We need to retrieve this spreadsheet and select the specific worksheets first:
 
-Retrieve the spreadsheet:
-
-```{r connect_google_spreadsheets}
-retrieve_spreadsheet <- gs_title("alien mollusca checklist")
-```
-
-Select the data in the worksheets:
-
-```{r read_source_data}
-input_taxa <- retrieve_spreadsheet %>% gs_read("taxa", col_types = col_types)
-input_vernacular_names <- retrieve_spreadsheet %>% gs_read("vernacular_names", col_types = col_types)
-input_synonyms <- retrieve_spreadsheet %>% gs_read("synonyms", col_types = col_types)
-input_references <- retrieve_spreadsheet %>% gs_read("references", col_types = col_types)
+```{r}
+input_taxa <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=0&single=true&output=csv", show_col_types = FALSE)
+input_vernacular_names <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=453273291&single=true&output=csv", show_col_types = FALSE)
+input_synonyms <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=1318103769&single=true&output=csv", show_col_types = FALSE)
+input_references <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=568843088&single=true&output=csv", show_col_types = FALSE)
 ```
 
 We want to add a copy of the source data to the repository:
