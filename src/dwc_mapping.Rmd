@@ -666,7 +666,10 @@ distribution %<>% mutate(dwc_establishmentMeans = "introduced")
 The dataset integrates two fields with date information: `first_observation`, which is _always_ populated, and `last_observation`, which is _often empty_. From these columns, we create `eventDate` (ISO 8601 format: `yyyy` or `yyyy`/`yyyy`).
 
 ```{r}
-distribution %<>% mutate(dwc_eventDate = case_when(
+distribution %<>% mutate(
+  first_observation = as.character(first_observation),
+  last_observation = as.character(last_observation),
+  dwc_eventDate = case_when(
   is.na(last_observation) ~ first_observation,
   TRUE ~ paste(first_observation, last_observation, sep = "/")))
 ```
