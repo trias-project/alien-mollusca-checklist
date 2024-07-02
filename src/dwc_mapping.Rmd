@@ -530,81 +530,74 @@ species_profile <-
   arrange(taxonID)
 ```
 
+## Distribution extension
 
-Save to CSV:
+Create a dataframe with all data (including multiple distributions). Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
 
-```{r}
-write_delim(species_profile, here("data", "processed", "speciesprofile.tsv"), delim = "\t", na = "")
-```
+Information for `eventDate` is contained in `date_first_observation` and `date_last_observation`, which we will express here in an ISO 8601 date format `yyyy/yyyy` (`start_date/end_date`).
 
-# Distribution extension:
+Not all cells for `date_first_observation` (DFO) and/or `date_last_observation` (DLO) are populated. So, we used the following rules for those records: 
 
-Create separate dataframe:
-
-```{r}
-distribution <- input_taxa
-```
-
-Preview:
+***case 1.*** If `DFO` is empty and `DLO` is empty, `eventDate` is `NA` 
+***case 2.***  If `DFO` is empty and `DLO` is not empty: eventDate = `/DLO`
+***case 3.*** If `DFO` is not empty and `DLO` is empty, eventDate is `DFO/`
 
 ```{r}
-distribution %>% head()
+distribution <-
+  input_data %>%
+  # # pathway
+  # pivot_longer(
+  #   names_to = "key",
+  #   values_to = "pathway",
+  #   starts_with("introduction_pathway"),
+  #   values_drop_na = FALSE) %>%
+  # filter( # keep NA value for species with no pathway provided
+  #   !is.na(pathway) |
+  #     (is.na(pathway) & key == "introduction_pathway_1")
+  #   ) %>%
+  # other terms
+  mutate(
+    taxonID = taxon_id,
+    locationID = case_when(
+      location == "Flanders" ~ "ISO_3166-2:BE-VLG",
+      location == "Wallonia" ~ "ISO_3166-2:BE-WAL",
+      location == "Brussels" ~ "ISO_3166-2:BE-BRU",
+      location == "Belgium" ~ "ISO_3166-2:BE"
+    ),
+    locality = case_when(
+      location == "Flanders" ~ "Flemish Region",
+      location == "Wallonia" ~ "Walloon Region",
+      location == "Brussels" ~ "Brussels-Capital Region",
+      location == "Belgium" ~ "Belgium"
+    ),
+    countryCode = country_code,
+    occurrenceStatus = occurrence_status,
+    establishmentMeans = establishment_means,
+    # degreeOfEstablishment = degree_of_establishment,
+    dwc_eventDate = case_when(
+      is.na(date_last_observation) ~ date_first_observation,
+      TRUE ~ paste(date_first_observation, date_last_observation, sep = "/"))),
+    # eventDate = case_when(
+    #   is.na(date_first_observation) & is.na(date_last_observation) ~ NA,
+    #   is.na(date_first_observation) ~ paste0("/", date_last_observation),
+    #   is.na(date_last_observation) ~ paste0(date_first_observation, "/"),
+    #   !is.na(date_first_observation) & !is.na(date_last_observation) ~ 
+    #     paste(date_first_observation, date_last_observation, sep = "/")
+    ),
+    source = source,
+    occurrenceRemarks = occurrence_remarks
+  ) %>%
+  select(
+    "taxonID", "locationID", "locality", "countryCode", "occurrenceStatus",
+    "establishmentMeans", # "degreeOfEstablishment", "pathway", 
+    "eventDate", "source", "occurrenceRemarks"
+  )# %>%
+  # arrange(taxonID)
+
+write_delim(distribution, here("data", "processed", "distribution.tsv"), delim = "\t", na = "")
 ```
 
 
-## Term mapping
-
-```{r}
-distribution <- input_taxa
-```
-
-Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
-
-### taxonID
-
-Rename `taxon_id` to `dwc_taxonID`:
-
-```{r}
-distribution %<>% rename("dwc_taxonID" = "taxon_id") 
-```
-
-### locationID
-
-```{r}
-distribution %<>% mutate(dwc_locationID = "ISO_3166-2:BE") 
-```
-
-### locality
-
-```{r}
-distribution %<>% mutate(dwc_locality = "Belgium") 
-```
-
-### countryCode
-
-```{r}
-distribution %<>% mutate(dwc_countryCode = "BE") 
-```
-
-### occurrenceStatus
-
-`occurrenceStatus` should be `present`, `doubtful` or `absent`:
-
-```{r}
-distribution %>% 
-  group_by(occurrence_status) %>% 
-  summarize(records = n())
-```
-
-```{r}
-distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
-```
-
-### establishmentMeans
-
-```{r}
-distribution %<>% mutate(dwc_establishmentMeans = "introduced") 
-```
 
 ### eventDate
 
@@ -619,45 +612,13 @@ distribution %<>% mutate(
   TRUE ~ paste(first_observation, last_observation, sep = "/")))
 ```
 
-### source
 
-Information for source can be found in `source_distribution`.
-
-```{r}
-distribution %<>% mutate(dwc_source = source_distribution) 
-```
 
 ### occurrenceRemarks
 
 ```{r}
 distribution %<>% mutate(dwc_occurrenceRemarks = paste(
   first_observation_text, distribution_belgium_text, sep = " ")) 
-```
-
-## Post-processing
-
-Only keep the Darwin Core columns:
-
-```{r}
-distribution %<>% select(starts_with("dwc_"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(distribution) <- str_remove(colnames(distribution), "dwc_")
-```
-
-Preview data:
-
-```{r}
-distribution %>% head()
-```
-
-Save to CSV:
-
-```{r}
-write_delim(distribution, here("data", "processed", "distribution.tsv"), delim = "\t", na = "")
 ```
 
 # Literature reference extension
