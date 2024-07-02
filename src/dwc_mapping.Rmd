@@ -38,19 +38,15 @@ library(rgbif)          # To use GBIF services
 
 # Read source data
 
-Set column types:
+The data is maintained in [this Google Spreadsheet](https://docs.google.com/spreadsheets/d/1LeXXbry2ArK2rngsmFjz_xErwE1KwQ8ujtvHNmTVA6E/edit?gid=1518765324#gid=1518765324).
 
-```{r}
-col_types = cols(
-   .default = col_character(),
-    other_col = col_double())
+Read the relevant worksheet (published as csv):
+
+```{r read_source_data}
+raw_data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTl8IEk2fProQorMu5xKQPdMXl3OQp-c0f6eBXitv0BiVFZ3JSJCde0PtbFXuETgguf6vK8b43FDX1C/pub?gid=1518765324&single=true&output=csv", show_col_types = FALSE)
 ```
 
-The original spreadsheet can be found [here](https://docs.google.com/spreadsheets/d/1hSXd6SZQUvI8uGbE_5-vmN8ZZz739D46HRt2aTFcb-s/edit#gid=0). We need to retrieve this spreadsheet and select the specific worksheets first:
-
 ```{r}
-input_taxa <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=0&single=true&output=csv", show_col_types = FALSE)
-input_vernacular_names <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=453273291&single=true&output=csv", show_col_types = FALSE)
 input_synonyms <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=1318103769&single=true&output=csv", show_col_types = FALSE)
 input_references <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=568843088&single=true&output=csv", show_col_types = FALSE)
 ```
