@@ -59,43 +59,30 @@ write_csv(input_synonyms, here("data", "raw", "input_synonyms.csv"), na = "")
 write_csv(input_references, here("data", "raw", "input_references.csv"), na = "")
 ```
 
-# Pre-processing
+# Preprocessing: tidy data and add taxon ID's
 
-## Clean files:
-
-`input_vernacular_names`, `input_synonyms` and `input_references` contain empty rows, we remove those here:
+`input_synonyms` and `input_references` contain empty rows, we remove those here:
 
 ```{r}
-input_vernacular_names %<>% remove_empty("rows") 
 input_synonyms %<>% remove_empty("rows") 
 input_references %<>% remove_empty("rows") 
 ```
 
-## Scientific names
-
-Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in `taxa`:
+To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`. We have created one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name and kingdom. Once this is created, it is added to the source data. 
 
 ```{r}
-parsed_names <- input_taxa %>%
-  distinct(scientific_name) %>%
-  pull() %>% # Create vector from dataframe
-  parsenames() # An rgbif function
-```
-
-All scientific names are of `type = SCIENTIFIC` and need no further processing.
-
-## Taxon IDs
-
-To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`.
-Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name.
-
-```{r}
-vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
-input_taxa %<>% 
-  mutate(taxon_id = paste("alien-mollusca-checklist", 
-                          "taxon",
-                          vdigest(scientific_name, algo = "md5"), 
-                          sep = ":"))
+input_data <-
+  raw_data %>%
+  remove_empty("rows") %>%
+  clean_names() %>%
+  mutate(
+    taxon_id = paste(
+      "alien-mollusca-checklist",
+      "taxon",
+      .data$taxon_id_hash,
+      sep = ":"
+    )
+  )
 ```
 
 # Taxon core
