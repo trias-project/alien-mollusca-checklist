@@ -575,15 +575,12 @@ distribution <-
     establishmentMeans = establishment_means,
     # degreeOfEstablishment = degree_of_establishment,
     eventDate = case_when(
-      is.na(date_last_observation) ~ as.character(date_first_observation),
-      TRUE ~ paste(as.character(date_first_observation), as.character(date_last_observation), sep = "/")),
-    # eventDate = case_when(
-    #   is.na(date_first_observation) & is.na(date_last_observation) ~ NA,
-    #   is.na(date_first_observation) ~ paste0("/", date_last_observation),
-    #   is.na(date_last_observation) ~ paste0(date_first_observation, "/"),
-    #   !is.na(date_first_observation) & !is.na(date_last_observation) ~ 
-    #     paste(date_first_observation, date_last_observation, sep = "/")
-    # ),
+      is.na(date_first_observation) & is.na(date_last_observation) ~ NA,
+      is.na(date_first_observation) ~ paste0("/", date_last_observation),
+      is.na(date_last_observation) ~ paste0(date_first_observation, "/"),
+      !is.na(date_first_observation) & !is.na(date_last_observation) ~
+        paste(date_first_observation, date_last_observation, sep = "/")
+    ),
     source = source,
     occurrenceRemarks = occurrence_remarks
   ) %>%
