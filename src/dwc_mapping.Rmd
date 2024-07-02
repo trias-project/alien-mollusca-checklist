@@ -51,11 +51,10 @@ input_synonyms <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmh
 input_references <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=568843088&single=true&output=csv", show_col_types = FALSE)
 ```
 
-We want to add a copy of the source data to the repository:
+Copy the source data to the repository to keep track of changes:
 
 ```{r}
-write_csv(input_taxa, here("data", "raw", "input_taxa.csv"), na = "")
-write_csv(input_vernacular_names, here("data", "raw", "input_vernacular_names.csv"), na = "")
+write_csv(raw_data, here("data", "raw", "alien_mollusca_dump.csv"), na = "")
 write_csv(input_synonyms, here("data", "raw", "input_synonyms.csv"), na = "")
 write_csv(input_references, here("data", "raw", "input_references.csv"), na = "")
 ```
