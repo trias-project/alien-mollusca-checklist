@@ -431,75 +431,36 @@ write_delim(taxon, here("data", "processed", "taxon.tsv"), delim = "\t", na = ""
 
 # Vernacular names extension
 
-## Term mapping
-
 Map the data to [Vernacular Names](http://rs.gbif.org/extension/gbif/1.0/vernacularname.xml).
+Vernacular names are available in two languages: English (`raw_common_name`) and Dutch (`raw_nederlandse_naam`). We will gather these columns to generate a single column containing the vernacular name (`vernacularName`) and an additional column with the language (`language`):
 
-### taxonID
+```{r vernacular_names}
+vernacular_names <- 
+  input_data %>% 
+  tidyr::gather(
+    key = language,
+    value = vernacularName,
+    common_name, dutch_name, french_name, german_name,
+    na.rm = TRUE,
+    convert = TRUE) %>%
+  dplyr::mutate(vernacularName = strsplit(vernacularName, "\\|")) %>% 
+  unnest(vernacularName) %>% 
+  dplyr::mutate(
+    taxonID = taxon_id,
+    vernacularName = str_trim(vernacularName),
+    language = 
+      dplyr::recode(
+        language,
+        "dutch_name" = "nl",
+        "french_name" = "fr",
+        "common_name" = "en",
+        "german_name" = "ge"
+        ) 
+    ) %>% 
+  dplyr::select(taxonID, vernacularName, language) %>% 
+  dplyr::arrange(taxonID)
 
-Merge with `taxon_id`:
-
-```{r}
-input_vernacular_names %<>% left_join(
-  select(input_taxa, scientific_name, taxon_id), 
-  by = "scientific_name")
-```
-
-Rename to `dwc_taxonID`:
-
-```{r}
-input_vernacular_names %<>% rename("dwc_taxonID" = "taxon_id") 
-```
- 
-### vernacularName
-
-```{r}
-input_vernacular_names %<>% mutate(dwc_vernacularName = vernacular_name)
-```
-
-### language
-
-```{r}
-input_vernacular_names %>%
-  group_by(language) %>% 
-  summarize(records = n())
-```
-
-This column currently contains the original column name, which we will recode to the ISO 639-1 language code:
-
-```{r}
-input_vernacular_names %<>% mutate(dwc_language = recode(language,
- "dutch" = "nl",
- "english" = "en",
- "french" = "fr",
- "german" = "de"))
-```
-
-## Post-processing
-
-Remove the original columns: 
-
-```{r}
-input_vernacular_names %<>% select(
-  starts_with("dwc"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(input_vernacular_names) <- str_remove(colnames(input_vernacular_names), "dwc_")
-```
-
-Preview data:
-
-```{r}
-input_vernacular_names %>% head()
-```
-
-Save to CSV:
-
-```{r}
-write_delim(input_vernacular_names, here("data", "processed", "vernacularname.tsv"), delim = "\t", na = "")
+write_delim(vernacular_names, here("data", "processed", "vernacularname.tsv"), delim = "\t", na = "")
 ```
 
 ## Species profile extension
