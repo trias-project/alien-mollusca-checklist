@@ -545,16 +545,16 @@ Not all cells for `date_first_observation` (DFO) and/or `date_last_observation` 
 ```{r}
 distribution <-
   input_data %>%
-  # # pathway
-  # pivot_longer(
-  #   names_to = "key",
-  #   values_to = "pathway",
-  #   starts_with("introduction_pathway"),
-  #   values_drop_na = FALSE) %>%
-  # filter( # keep NA value for species with no pathway provided
-  #   !is.na(pathway) |
-  #     (is.na(pathway) & key == "introduction_pathway_1")
-  #   ) %>%
+  # pathway
+  pivot_longer(
+    names_to = "key",
+    values_to = "pathway",
+    starts_with("introduction_pathway"),
+    values_drop_na = FALSE) %>%
+  filter( # keep NA value for species with no pathway provided
+    !is.na(pathway) |
+      (is.na(pathway) & key == "introduction_pathway_1")
+    ) %>%
   # other terms
   mutate(
     taxonID = taxon_id,
@@ -573,7 +573,7 @@ distribution <-
     countryCode = country_code,
     occurrenceStatus = occurrence_status,
     establishmentMeans = establishment_means,
-    # degreeOfEstablishment = degree_of_establishment,
+    degreeOfEstablishment = degree_of_establishment,
     eventDate = case_when(
       is.na(date_first_observation) & is.na(date_last_observation) ~ NA,
       is.na(date_first_observation) ~ paste0("/", date_last_observation),
@@ -586,36 +586,12 @@ distribution <-
   ) %>%
   select(
     "taxonID", "locationID", "locality", "countryCode", "occurrenceStatus",
-    "establishmentMeans", # "degreeOfEstablishment", "pathway", 
+    "establishmentMeans", "degreeOfEstablishment", "pathway", 
     "eventDate", "source", "occurrenceRemarks"
   ) %>%
   arrange(taxonID)
 
 write_delim(distribution, here("data", "processed", "distribution.tsv"), delim = "\t", na = "")
-```
-
-
-
-### eventDate
-
-The dataset integrates two fields with date information: `first_observation`, which is _always_ populated, and `last_observation`, which is _often empty_. From these columns, we create `eventDate` (ISO 8601 format: `yyyy` or `yyyy`/`yyyy`).
-
-```{r}
-distribution %<>% mutate(
-  first_observation = as.character(first_observation),
-  last_observation = as.character(last_observation),
-  dwc_eventDate = case_when(
-  is.na(last_observation) ~ first_observation,
-  TRUE ~ paste(first_observation, last_observation, sep = "/")))
-```
-
-
-
-### occurrenceRemarks
-
-```{r}
-distribution %<>% mutate(dwc_occurrenceRemarks = paste(
-  first_observation_text, distribution_belgium_text, sep = " ")) 
 ```
 
 # Literature reference extension
