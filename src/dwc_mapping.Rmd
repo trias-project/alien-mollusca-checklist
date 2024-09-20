@@ -41,7 +41,6 @@ raw_data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTl8IEk2fP
 
 ```{r}
 input_synonyms <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=1318103769&single=true&output=csv", show_col_types = FALSE)
-input_references <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=568843088&single=true&output=csv", show_col_types = FALSE)
 ```
 
 Copy the source data to the repository to keep track of changes:
@@ -49,7 +48,6 @@ Copy the source data to the repository to keep track of changes:
 ```{r}
 write_csv(raw_data, here("data", "raw", "alien_mollusca_dump.csv"), na = "")
 write_csv(input_synonyms, here("data", "raw", "input_synonyms.csv"), na = "")
-write_csv(input_references, here("data", "raw", "input_references.csv"), na = "")
 ```
 
 # Preprocessing: tidy data and add taxon ID's
@@ -58,7 +56,6 @@ write_csv(input_references, here("data", "raw", "input_references.csv"), na = ""
 
 ```{r}
 input_synonyms %<>% remove_empty("rows") 
-input_references %<>% remove_empty("rows") 
 ```
 
 To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`. We have created one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name and kingdom. Once this is created, it is added to the source data. 
@@ -545,62 +542,6 @@ distribution <-
   arrange(taxonID)
 ```
 
-# Literature reference extension
-
-### taxonID
-
-Merge with `input_data` to retrieve `taxon_id`:
-
-```{r}
-input_references %<>% left_join(
-  select(input_data, scientific_name, taxon_id),
-  by = "scientific_name")
-```
-
-Rename to `dwc_taxonID`:
-
-```{r}
-input_references %<>% rename("dwc_taxonID" = "taxon_id") 
-```
-
-### identifier
-
-```{r}
-input_references %<>% mutate(dwc_identifier = shortref)
-```
-
-### bibliographicCitation
-
-```{r}
-input_references %<>% mutate(dwc_bibliographicCitation = reference) 
-```
-
-## Post-processing
-
-Only keep the Darwin Core columns:
-
-```{r}
-input_references %<>% select(starts_with("dwc_"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(input_references) <- str_remove(colnames(input_references), "dwc_")
-```
-
-Preview data:
-
-```{r}
-input_references %>% head()
-```
-
-Save to CSV:
-
-```{r}
-write_delim(input_references, here("data", "processed", "references.tsv"), delim = "\t", na = "")
-```
-
 ## Description extension
 
 In the description extension we want to include the native range of a species
@@ -629,7 +570,6 @@ description <-
 
 ```{r}
 write_delim(taxon, here("data", "processed", "taxon.tsv"), delim = "\t", na = "")
-write_delim(input_references, here("data", "processed", "references.tsv"), delim = "\t", na = "")
 
 # write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
 write_csv(vernacular_name, here("data", "processed", "vernacularname.csv"), na = "")
