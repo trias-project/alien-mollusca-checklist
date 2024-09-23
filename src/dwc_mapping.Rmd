@@ -39,24 +39,13 @@ Read the relevant worksheet (published as csv):
 raw_data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTl8IEk2fProQorMu5xKQPdMXl3OQp-c0f6eBXitv0BiVFZ3JSJCde0PtbFXuETgguf6vK8b43FDX1C/pub?gid=1518765324&single=true&output=csv", show_col_types = FALSE)
 ```
 
-```{r}
-input_synonyms <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTmhKKSsWpFKdJW2f2RsVy9VCnkdkBJ76Fo8romrvqcrP6nd4TH4eyNsviJyUdL2zRFvu8LM6FQEVhG/pub?gid=1318103769&single=true&output=csv", show_col_types = FALSE)
-```
-
 Copy the source data to the repository to keep track of changes:
 
 ```{r}
 write_csv(raw_data, here("data", "raw", "alien_mollusca_dump.csv"), na = "")
-write_csv(input_synonyms, here("data", "raw", "input_synonyms.csv"), na = "")
 ```
 
-# Preprocessing: tidy data and add taxon ID's
-
-`input_synonyms` and `input_references` contain empty rows, we remove those here:
-
-```{r}
-input_synonyms %<>% remove_empty("rows") 
-```
+# Preprocessing: tidy data 
 
 To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`. We have created one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name and kingdom. Once this is created, it is added to the source data. 
 
@@ -74,350 +63,41 @@ input_data <-
     )
   )
 ```
+# Darwin Core mapping
 
-# Taxon core
+## Taxon core
 
-## Pre-processing
-
-Taxonomic information is provided in two different dataframes: 
-- `input_data` including all _accepted_ scientific names
-- `input_synonyms` including all scientific names of _synonyms_
-
-For some of the taxa, the original name is provided, i.e. the scientific name as it originally appeared when the name was first established under the rules of the associated nomenclatural code. These original names can be extracted from `input_synyms`: these are the `scientific_name` for which `remarks` = `original name`. 
-
-For each scientific name in this checklist (accepted or synonym), the taxon Core will thus inlcude the following information
-
-- `taxon_id`: taxon_id of the scientific name
-- `accepted_name_usage_id`: taxon_id of the _accepted_ scientific name
-- `scientific_name`
-- `accepted_name_usage`: the _accepted_ scientific name
-- `taxonomic_status`: `accepted`, `homotypicSynonym` (for original names) and `heterotypicSynoym` (for all other synonyms)
-- higher classification information: `class`, `order`, `family` and `genus` 
-
-We map these terms in three steps:
-
-1. Generate `accepted_taxa` which contains all terms for the _accepted_ scientific names (in `input_data`).
-  - `taxon_id`, `scientific_name` and the higher classification is already provided
-  - Map `taxonomic_status` (= `accepted`), `accepted_name_usage` (= `scientific_name`) and `accepted_name_usage_id` (= `taxon_id`)
-  
-2. Generate `synonyms` which contains all terms for the _synonyms_ (in `input_synonyms`). 
-  - `scientific_name` is already provided
-  - Add higher classification `class`, `order`, `family` and `genus` by joining with `input_data`
-  - Generate `taxon_id`
-  - Map `taxonomic_status` (= `homotypicSynonym` or `heterotypicSynoym`), `accepted_name_usage` (= `synonym_of`) and `accepted_name_usage_id` (= `taxon_id` from `taxon`)
-  
-3. Join  `synonyms` with `accepted_taxa` using the dplyr funtion `bind_rows()`
-
-### Generate accepted_taxa
-
-Generate `accepted_taxa` by extracting all taxonomic information from `input_data`:
+Create a dataframe with unique taxa only (ignoring multiple distribution rows). Map the data to [Darwin Core Taxon](http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml).
 
 ```{r}
-accepted_taxa <- input_data %>% select(taxon_id, scientific_name, class, order, family, genus, taxon_remarks)
-```
-
-Map `taxonomic_status` which is `accepted`:
-
-```{r}
-accepted_taxa %<>% mutate(taxonomic_status = "accepted")
-```
-
-Map `accepted_name_usage` and `accepted_name_usage_id`:
-
-```{r}
-accepted_taxa <-
-  accepted_taxa %>% 
-    mutate(accepted_name_usage = scientific_name) %>% 
-    mutate(accepted_name_usage_id = taxon_id)
-```
-
-Order terms to enable future join with `synonyms`:
-
-```{r}
-accepted_taxa %<>% select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxon_remarks) 
-```
-
-### Generate synonyms
-
-Join `synonyms` with `accepted_taxa` to extract higher classification:
-
-```{r}
-synonyms <- 
-  input_synonyms %>% 
-    left_join(
-      select(accepted_taxa, scientific_name, taxon_id, class, order, family, genus),
-      by = c("synonym_of" = "scientific_name"))
-```
-
-Rename  `taxon_id` from `accepted_taxa` to avoid confusion with the future mapping of `taxon_id` from `synonyms`:
-
-```{r}
-synonyms %<>% rename("taxon_id_accepted" = "taxon_id")
-```
-
-Map `taxon_id` for synonyms:
-
-```{r}
-vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
-synonyms %<>% 
-  mutate(taxon_id = paste("alien-mollusca-checklist", 
-                          "taxon",
-                          vdigest(scientific_name, algo = "md5"), 
-                          sep = ":"))
-```
-
-One scientific name is duplicated in `synonyms`:
-
-```{r}
-synonyms %>% 
-  slice(which(duplicated(synonyms$scientific_name))) %>% 
-  select(scientific_name)
-```
-
-This is because `Helix balteata Pollonera, 1892` is both a synonym of `Cernuella virgata (Da Costa, 1778)` and `Cernuella cisalpina (Rossmässler, 1837)`. We need to manually adjust the  `taxonID` for these records:
-
-```{r}
-synonyms %<>% mutate(taxon_id = case_when(
-  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella virgata (Da Costa, 1778)" ~ paste(taxon_id, "1", sep = ":"),
-  scientific_name == "Helix balteata Pollonera, 1892" & synonym_of == "Cernuella cisalpina (Rossmässler, 1837)" ~ paste(taxon_id, "2", sep = ":"),
-  TRUE ~ taxon_id))
-```
-
-Check whether taxonID's are still duplicated:
-
-```{r}
-synonyms %>% 
-  slice(which(duplicated(synonyms$taxon_id))) %>% 
-  select(scientific_name)
-```
-
-Map `taxonomic_status`. 
-
-```{r}
-synonyms %<>% mutate(taxonomic_status = case_when(
-  scientific_name == "Helix balteata Pollonera, 1892" ~ "proParteSynonym",
-  remarks == "original name" ~ "homotypicSynonym",
-  TRUE ~ "heterotypicSynonym"))
-```
-
-Map `accepted_name_usage` and `accepted_name_usage_id`. This information is provided in `synonym_of` and `taxon_id_accepted` respectively. We thus only need to rename these columns:
-
-```{r}
-synonyms <- 
-  synonyms %>% 
-    rename("accepted_name_usage" = "synonym_of") %>% 
-    rename("accepted_name_usage_id" = "taxon_id_accepted")
-```
-
-Add `taxonomy` which is empty for most `synonyms`, except for `Ferussacia folliculus Schröter, 1784` and `Ferussacia follicula Schröter, 1784`:
-
-```{r}
-synonyms %<>% mutate(taxonomy = case_when(
-  scientific_name == "Ferussacia folliculus Schröter, 1784" | 
-    scientific_name == "Ferussacia follicula Schröter, 1784" ~ remarks,
-  TRUE ~ ""))
-```
-
-Rearrange columns to enable future join with `accepted_taxa`:
-
-```{r}
-synonyms <- synonyms %>% 
-  select(taxon_id, accepted_name_usage_id, scientific_name, accepted_name_usage, class, order, family, genus, taxonomic_status, taxonomy) 
-```
-
-Merge both datasets together in `taxon`:
-
-```{r}
-taxon <- accepted_taxa %<>% bind_rows(synonyms)
-```
-
-## Term mapping
-
-Map the data to [Darwin Core Taxon](http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml).
-
-Start with record-level terms which contain metadata about the dataset (which is generally the same for all records).
-
-### language
-
-```{r}
-taxon %<>% mutate(dwc_language = "en")
-```
-
-### license
-
-```{r}
-taxon %<>% mutate(dwc_license = "http://creativecommons.org/publicdomain/zero/1.0/")
-```
-
-### rightsHolder
-
-```{r}
-taxon %<>% mutate(dwc_rightsHolder = "Royal Belgian Institute of Natural Sciences")
-```
-
-### datasetID
-
-```{r}
-taxon %<>% mutate(dwc_datasetID = "https://doi.org/10.15468/t13kwo")
-```
-
-### institutionCode
-
-```{r}
-taxon %<>% mutate(dwc_institutionCode = "RBINS")
-```
-
-### datasetName
-
-```{r}
-taxon %<>% mutate(dwc_datasetName = "Registry of introduced terrestrial molluscs in Belgium")
-```
-
-The following terms contain information about the taxon:
-
-### taxonID
-
-```{r}
-taxon %<>% mutate(dwc_taxonID = taxon_id) 
-```
-
-### acceptedNameUsageID
-
-```{r}
-taxon %<>% mutate(dwc_acceptedNameUsageID = accepted_name_usage_id) 
-```
-
-### scientificName
-
-```{r}
-taxon %<>% mutate(dwc_scientificName = scientific_name)
-```
-
-### acceptedNameUsage
-
-```{r}
-taxon %<>% mutate(dwc_acceptedNameUsage = accepted_name_usage) 
-```
-
-### kingdom
-
-```{r}
-taxon %<>% mutate(dwc_kingdom = "Animalia")
-```
-
-### phylum
-
-```{r}
-taxon %<>% mutate(dwc_phylum = "Mollusca") 
-```
-
-### class
-
-```{r}
-taxon %<>% mutate(dwc_class = class)
-```
-
-### order
-
-```{r}
-taxon %<>% mutate(dwc_order = order) 
-```
-
-### family
-
-```{r}
-taxon %<>% mutate(dwc_family = family) 
-```
-
-### genus
-
-```{r}
-taxon %<>% mutate(dwc_genus = genus)
-```
-
-### taxonRank
-
-We can exxtract the taxon rank information from GBIF using the `rgbif` package.
-
-```{r}
-taxon_rank <- parsenames(taxon$dwc_scientificName)
-```
-
-Remove one 1 for the duplicated scientific name `Helix balteata Pollonera, 1892`:
-
-```{r}
-taxon_rank %<>% distinct(scientificname, rankmarker, .keep_all = FALSE)
-```
-
-Add information to `taxon`:
-
-```{r}
-taxon %<>% 
-  left_join(
-    select(taxon_rank, scientificname, rankmarker),
-    by = c("dwc_scientificName" = "scientificname"))
-```
-
-Inspect values for `rankmarker`:
-
-```{r}
-taxon %>% 
-  group_by(rankmarker) %>% 
-  summarize(records = n())
-```
-
-Recode values for `rankmarker` in `dwc_taxonRank`
-
-```{r}
-taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
-  "f." = "forma",
-  "infrasp." = "subspecies",
-  "sp." = "species",
-  "var." = "variety"))
-```
-
-### nomenclaturalCode
-
-```{r}
-taxon %<>% mutate(dwc_nomenclaturalCode = "ICZN")
-```
-
-### taxonomicStatus
-
-```{r}
-taxon %<>% mutate(dwc_taxonomicStatus = taxonomic_status) 
-```
-
-### taxonRemarks
-
-```{r}
-taxon %<>% mutate(dwc_taxonRemarks = taxon_remarks) 
-```
-
-## Post-processing
-
-Only keep the Darwin Core columns:
-
-```{r}
-taxon %<>% select(starts_with("dwc_"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(taxon) <- str_remove(colnames(taxon), "dwc_")
-```
-
-Preview data:
-
-```{r}
-taxon %>% head()
-```
-
-Save to CSV:
-
-```{r}
-write_delim(taxon, here("data", "processed", "taxon.tsv"), delim = "\t", na = "")
+taxon <-
+  input_data %>%
+  distinct(taxon_id, .keep_all = TRUE) %>%
+  mutate(
+    language = "en",
+    license = "http://creativecommons.org/publicdomain/zero/1.0/",
+    rightsHolder = "Royal Belgian Institute of Natural Sciences",
+    accessRights = "https://www.inbo.be/en/norms-data-use",
+    datasetID = "https://doi.org/10.15468/t13kwo",
+    institutionCode = "RBINS",
+    datasetName = "Registry of introduced terrestrial molluscs in Belgium",
+    taxonID = taxon_id,
+    scientificName = scientific_name,
+    kingdom = kingdom,
+    phylum = phylum,
+    order = order,
+    family = family,
+    genus = genus,
+    taxonRank = taxon_rank,
+    nomenclaturalCode = nomenclatural_code,
+    .keep = "none"
+  ) %>% 
+  arrange(taxonID) %>% 
+  select(
+    "language", "license", "rightsHolder", "accessRights", "datasetID",
+    "institutionCode", "datasetName", "taxonID", "scientificName", "kingdom", 
+    "phylum", "order", "family", "genus", "taxonRank", "nomenclaturalCode"
+  )
 ```
 
 # Vernacular name extension
