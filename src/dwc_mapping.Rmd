@@ -249,9 +249,7 @@ description <-
 # Save to CSV:
 
 ```{r}
-write_delim(taxon, here("data", "processed", "taxon.tsv"), delim = "\t", na = "")
-
-# write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
+write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
 write_csv(vernacular_name, here("data", "processed", "vernacularname.csv"), na = "")
 write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
 write_csv(species_profile, here("data", "processed", "speciesprofile.csv"), na = "")
