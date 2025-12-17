@@ -24,7 +24,6 @@ Load libraries:
 
 ```{r}
 library(tidyverse)      # To do data science
-library(magrittr)       # To use %<>% pipes
 library(here)           # To find files
 library(janitor)        # To clean input data
 ```
@@ -91,8 +90,8 @@ taxon <-
     taxonRank = taxon_rank,
     nomenclaturalCode = nomenclatural_code,
     .keep = "none"
-  ) %>% 
-  arrange(taxonID) %>% 
+  ) |>
+  arrange(taxonID) |>
   select(
     "language", "license", "rightsHolder", "accessRights", "datasetID",
     "institutionCode", "datasetName", "taxonID", "scientificName", "kingdom", 
@@ -107,15 +106,15 @@ Vernacular names are available in four languages: Dutch, French, English and Ger
 
 ```{r vernacular_name}
 vernacular_name <- 
-  input_data %>% 
+  input_data |>
   tidyr::gather(
     key = language,
     value = vernacularName,
     common_name, dutch_name, french_name, german_name,
     na.rm = TRUE,
     convert = TRUE) %>%
-  dplyr::mutate(vernacularName = strsplit(vernacularName, "\\|")) %>% 
-  unnest(vernacularName) %>% 
+  dplyr::mutate(vernacularName = strsplit(vernacularName, "\\|")) |>
+  unnest(vernacularName) |>
   dplyr::mutate(
     taxonID = taxon_id,
     vernacularName = str_trim(vernacularName),
@@ -127,8 +126,8 @@ vernacular_name <-
         "common_name" = "en",
         "german_name" = "ge"
         ) 
-    ) %>% 
-  dplyr::select(taxonID, vernacularName, language) %>% 
+    ) |>
+  dplyr::select(taxonID, vernacularName, language) |>
   dplyr::arrange(taxonID)
 ```
 
@@ -144,19 +143,19 @@ Map the data to [Species Profile](http://rs.gbif.org/extension/gbif/1.0/speciesp
 ```{r}
 species_profile <-
   input_data %>%
-  distinct(taxon_id, .keep_all = TRUE) %>% 
+  distinct(taxon_id, .keep_all = TRUE) |>
   filter(
     !is.na(terrestrial) |
       !is.na(marine) |
       !is.na(freshwater)
-  ) %>% 
+  ) |>
   mutate(
     .keep = "none",
     taxonID = taxon_id,
     isMarine = marine,
     isFreshwater = freshwater,
     isTerrestrial = terrestrial
-  ) %>% 
+  ) |>
   arrange(taxonID)
 ```
 
@@ -228,21 +227,21 @@ In the description extension we want to include the native range of a species
 
 ```{r}
 description <-
-  input_data %>% 
+  input_data |>
   # unique taxa only (ignoring multiple distribution rows)
-  distinct(taxon_id, .keep_all = TRUE) %>% 
+  distinct(taxon_id, .keep_all = TRUE) |>
   # Separate values on `|` 
-  mutate(native_range = strsplit(native_range, "\\|")) %>% 
-  unnest(native_range) %>% 
-  filter(!is.na(native_range)) %>% 
+  mutate(native_range = strsplit(native_range, "\\|")) |>
+  unnest(native_range) |>
+  filter(!is.na(native_range)) |>
   mutate(
     .keep = "none",
     taxonID = taxon_id,
     description = str_trim(native_range),
     type = "native range",
     language = "en"
-    ) %>% 
-  select("taxonID", "description", "type", "language") %>% 
+    ) |>
+  select("taxonID", "description", "type", "language") |>
   arrange(taxonID)
 ```
 
